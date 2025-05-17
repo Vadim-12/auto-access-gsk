@@ -1,23 +1,23 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { DatabaseModule } from './modules/database/database.module';
-import { FaceApiModule } from './modules/face-api/face-api.module';
 import { FilesModule } from './modules/files/files.module';
+import { CameraModule } from './modules/camera/camera.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    DatabaseModule,
+    JwtModule.register({
+      global: true,
+    }),
     UserModule,
     AuthModule,
-    FaceApiModule,
     FilesModule,
+    CameraModule,
   ],
-  controllers: [],
-  providers: [],
 })
 export class AppModule {}

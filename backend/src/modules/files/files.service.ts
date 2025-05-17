@@ -6,7 +6,6 @@ import * as path from 'path';
 export class FilesService {
   private uploadDirectory = path.resolve(__dirname, '..', '..', 'uploads');
 
-  // Метод для обработки загрузки файлов
   handleFileUpload(file: Express.Multer.File) {
     console.log('Uploaded file:', file);
     return {
@@ -15,7 +14,6 @@ export class FilesService {
     };
   }
 
-  // Метод для получения файла по имени
   getFile(filename: string) {
     const filePath = path.join(this.uploadDirectory, filename);
 
@@ -26,7 +24,6 @@ export class FilesService {
     return fs.createReadStream(filePath);
   }
 
-  // Метод для удаления файла
   deleteFile(filename: string) {
     const filePath = path.join(this.uploadDirectory, filename);
 
@@ -34,7 +31,7 @@ export class FilesService {
       throw new Error('File not found');
     }
 
-    fs.unlinkSync(filePath); // Удаление файла
+    fs.unlinkSync(filePath);
     return { message: 'File deleted successfully' };
   }
 }

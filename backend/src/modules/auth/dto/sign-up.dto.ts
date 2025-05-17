@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 export class SignUpDto {
@@ -18,17 +18,18 @@ export class SignUpDto {
     type: String,
   })
   @IsString()
+  @IsNotEmpty()
   @Unique(['phoneNumber'])
   phoneNumber: string;
 
   @ApiProperty({
-    description: 'User email',
-    required: false,
+    description: 'User password',
+    required: true,
     type: String,
   })
-  @IsEmail()
-  @IsOptional()
-  email?: string;
+  @IsString()
+  @IsNotEmpty()
+  password: string;
 
   @ApiProperty({
     description: 'User first name',
@@ -36,6 +37,7 @@ export class SignUpDto {
     type: String,
   })
   @IsString()
+  @IsNotEmpty()
   firstName: string;
 
   @ApiProperty({
@@ -44,6 +46,7 @@ export class SignUpDto {
     type: String,
   })
   @IsString()
+  @IsNotEmpty()
   lastName: string;
 
   @ApiProperty({

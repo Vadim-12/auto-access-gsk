@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 
 import { UserService } from './user.service';
@@ -14,8 +15,10 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { GetUserFilterDto } from './dto/get-users-filter.dto';
 import { UserDto } from './dto/user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { AuthHttpGuard } from '../auth/guards/auth-http.guard';
 
 @Controller('users')
+@UseGuards(AuthHttpGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 

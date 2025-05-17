@@ -1,22 +1,16 @@
 import { Module } from '@nestjs/common';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
-import { TokensModule } from '../tokens/tokens.module';
-import { UserModule } from '../user/user.module';
-import { TwilioModule } from '../twilio/twilio.module';
-import { DatabaseModule } from '../database/database.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { RefreshTokenEntity } from './entities/refresh-token.entity';
+import { UserEntity } from '../user/entities/user.entity';
+import { AuthService } from './auth.service';
+import { AuthController } from './auth.controller';
+import { AuthHttpGuard } from './guards/auth-http.guard';
+import { AuthWsGuard } from './guards/auth-ws.guard';
+import { TokensModule } from '../tokens/tokens.module';
 
 @Module({
-  imports: [
-    TokensModule,
-    UserModule,
-    TwilioModule,
-    DatabaseModule,
-    TypeOrmModule.forFeature([RefreshTokenEntity]),
-  ],
+  imports: [TypeOrmModule.forFeature([UserEntity]), TokensModule],
+  providers: [AuthService, AuthHttpGuard, AuthWsGuard],
   controllers: [AuthController],
-  providers: [AuthService],
+  exports: [AuthService, AuthHttpGuard, AuthWsGuard],
 })
 export class AuthModule {}

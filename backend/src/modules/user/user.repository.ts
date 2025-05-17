@@ -18,7 +18,7 @@ export class UserRepository {
   async findAndCount(
     params: SearchUserParams,
   ): Promise<{ items: UserEntity[]; total: number }> {
-    const [items, total] = await this.qb(params).getManyAndCount();
+    const [items, total] = await this.qb('and', params).getManyAndCount();
     return { items, total };
   }
 
@@ -35,19 +35,20 @@ export class UserRepository {
   }
 
   qb(
+    specific: 'and' | 'or',
     params: SearchUserParams = {},
     alias = 'user',
   ): SelectQueryBuilder<UserEntity> {
     const query = this.userRepository.createQueryBuilder(alias);
 
     if (params?.userIds?.length) {
-      query.andWhere(`${alias}.userId in (:...userIds)`, {
+      query[specific + 'Where'](`${alias}.userId in (:...userIds)`, {
         userIds: params.userIds,
       });
     }
 
     if (params?.phoneNumbers?.length) {
-      query.andWhere(`${alias}.phoneNumber in (:...phoneNumbers)`, {
+      query[specific + 'Where'](`${alias}.phoneNumber in (:...phoneNumbers)`, {
         phoneNumbers: params.phoneNumbers,
       });
     }

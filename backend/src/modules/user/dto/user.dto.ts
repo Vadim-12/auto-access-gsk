@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import {
-  IsEmail,
   IsEnum,
+  IsNotEmpty,
   IsOptional,
   IsPhoneNumber,
   IsString,
@@ -21,6 +21,16 @@ export class UserDto {
   userId: string;
 
   @ApiProperty({
+    description: 'Role of user',
+    required: true,
+    type: String,
+    example: UserRoleEnum.ADMIN,
+  })
+  @IsString()
+  @IsEnum(UserRoleEnum)
+  role: UserRoleEnum;
+
+  @ApiProperty({
     description: 'Phone number of user',
     required: true,
     type: String,
@@ -30,14 +40,14 @@ export class UserDto {
   phoneNumber: string;
 
   @ApiProperty({
-    description: 'Email of user',
+    description: 'Password of user',
     required: false,
     type: String,
-    example: 'john.doe@example.com',
+    example: '********',
   })
-  @IsEmail()
-  @IsOptional()
-  email?: string;
+  @IsString()
+  @IsNotEmpty()
+  passwordHash: string;
 
   @ApiProperty({
     description: 'First name of user',
@@ -66,16 +76,6 @@ export class UserDto {
   @IsOptional()
   @IsString()
   middleName?: string;
-
-  @ApiProperty({
-    description: 'Role of user',
-    required: true,
-    type: String,
-    example: UserRoleEnum.ADMIN,
-  })
-  @IsString()
-  @IsEnum(UserRoleEnum)
-  role: UserRoleEnum;
 
   constructor(entity: Partial<UserEntity>) {
     return plainToInstance(UserDto, entity, { excludeExtraneousValues: true });

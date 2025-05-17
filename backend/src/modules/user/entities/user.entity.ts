@@ -29,12 +29,11 @@ export class UserEntity {
   phoneNumber: string;
 
   @Column('varchar', {
-    comment: 'User email',
+    comment: 'User password hash',
     length: 254,
-    unique: true,
-    nullable: true,
+    nullable: false,
   })
-  email?: string;
+  passwordHash: string;
 
   @Column('varchar', {
     comment: 'User first name',
