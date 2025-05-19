@@ -72,8 +72,8 @@ export default function SignIn() {
 						color: colors.text,
 					},
 				]}
+				placeholderTextColor={colors.text + '70'}
 				placeholder='Номер телефона'
-				placeholderTextColor={colors.text + '80'}
 				keyboardType='phone-pad'
 				autoCapitalize='none'
 				value={phoneNumber}
@@ -89,8 +89,8 @@ export default function SignIn() {
 						color: colors.text,
 					},
 				]}
+				placeholderTextColor={colors.text + '70'}
 				placeholder='Пароль'
-				placeholderTextColor={colors.text + '80'}
 				secureTextEntry
 				value={password}
 				onChangeText={(newValue) => setPassword(newValue)}

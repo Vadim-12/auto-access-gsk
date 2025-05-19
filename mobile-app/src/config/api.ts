@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-	baseURL: process.env.API_URL,
+	baseURL: process.env.EXPO_PUBLIC_API_URL,
 	endpoints: {
 		auth: {
 			login: '/auth/login',

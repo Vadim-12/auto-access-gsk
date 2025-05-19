@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { API_CONFIG } from '@/config/api';
 import { SIGN_UP_ERROR } from '@/config/errors';
 
@@ -43,7 +43,7 @@ export default function SignUp() {
 			!lastName ||
 			!phoneNumber ||
 			!password ||
-			!confirmPassword ||
+			password !== confirmPassword ||
 			!!error ||
 			isLoading,
 		[
@@ -56,6 +56,10 @@ export default function SignUp() {
 			isLoading,
 		]
 	);
+
+	useEffect(() => {
+		console.log(API_CONFIG);
+	}, []);
 
 	const handleSubmit = async () => {
 		try {
@@ -79,7 +83,7 @@ export default function SignUp() {
 			// if (!response.ok) {
 			// 	throw new Error('Не удалось зарегистрироваться');
 			// }
-			router.push('/(app)');
+			// router.push('/(app)');
 		} catch (error) {
 			console.error('Ошибка при регистрации:', error);
 		} finally {
@@ -110,6 +114,7 @@ export default function SignUp() {
 						color: colors.text,
 					},
 				]}
+				placeholderTextColor={colors.text + '70'}
 				placeholder='Фамилия *'
 				value={lastName}
 				onChangeText={(newValue) => setLastName(newValue)}
@@ -130,6 +135,7 @@ export default function SignUp() {
 						color: colors.text,
 					},
 				]}
+				placeholderTextColor={colors.text + '70'}
 				placeholder='Имя *'
 				value={firstName}
 				onChangeText={(newValue) => setFirstName(newValue)}
@@ -144,6 +150,7 @@ export default function SignUp() {
 						color: colors.text,
 					},
 				]}
+				placeholderTextColor={colors.text + '70'}
 				placeholder='Отчество'
 				value={middleName}
 				onChangeText={(newValue) => setMiddleName(newValue)}
@@ -164,6 +171,7 @@ export default function SignUp() {
 						color: colors.text,
 					},
 				]}
+				placeholderTextColor={colors.text + '70'}
 				placeholder='Номер телефона *'
 				keyboardType='phone-pad'
 				value={phoneNumber}
@@ -185,8 +193,12 @@ export default function SignUp() {
 						color: colors.text,
 					},
 				]}
+				placeholderTextColor={colors.text + '70'}
 				placeholder='Пароль *'
 				secureTextEntry
+				autoComplete='off'
+				textContentType='oneTimeCode'
+				importantForAutofill='no'
 				value={password}
 				onChangeText={(newValue) => setPassword(newValue)}
 			/>
@@ -206,8 +218,12 @@ export default function SignUp() {
 						color: colors.text,
 					},
 				]}
+				placeholderTextColor={colors.text + '70'}
 				placeholder='Повтор пароля *'
 				secureTextEntry
+				autoComplete='off'
+				textContentType='oneTimeCode'
+				importantForAutofill='no'
 				value={confirmPassword}
 				onChangeText={(newValue) => setConfirmPassword(newValue)}
 			/>
