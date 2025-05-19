@@ -35,14 +35,10 @@ lerna-debug.log*
 !.vscode/launch.json
 !.vscode/extensions.json
 
-# dotenv environment variable files
+# Environment
 .env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
-.env.dev
-.env.prod
+.env.*
+!.env.example
 
 # temp directory
 .temp
@@ -59,3 +55,7 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # Twilio recovery code
 twilio_recovery_code.txt
+
+# Ngrok
+ngrok.yml
+ngrok.temp.yml

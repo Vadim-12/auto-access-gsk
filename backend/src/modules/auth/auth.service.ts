@@ -25,12 +25,14 @@ export class AuthService {
   ) {}
 
   async signUp(dto: SignUpDto) {
+    console.log('/api/auth/sign-up [POST] dto', dto);
     const passwordHash = await bcrypt.hash(dto.password, 10);
     delete dto.password;
     await this.userService.create({ ...dto, passwordHash });
   }
 
   async signIn(dto: SignInDto): Promise<JwtDto> {
+    console.log('/api/auth/sign-in [POST] dto', dto);
     const user = await this.userService.findByPhoneNumber(dto.phoneNumber);
     if (!user) {
       throw new NotFoundException(
@@ -44,6 +46,7 @@ export class AuthService {
   }
 
   async refreshTokens(dto: RefreshJwtDto): Promise<JwtDto> {
+    console.log('/api/auth/refresh [POST] dto', dto);
     let jwtPayload: {
       userId: string;
       role: UserRoleEnum;
@@ -71,6 +74,7 @@ export class AuthService {
   }
 
   async logout(dto: LogoutDto): Promise<void> {
+    console.log('/api/auth/logout [POST] dto', dto);
     const { refreshToken } = dto;
     await this.refreshTokenRepository.delete({ refreshToken });
   }

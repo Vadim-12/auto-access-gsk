@@ -1,0 +1,7 @@
+version: '2'
+authtoken: your-ngrok-auth-token-here
+tunnels:
+  api:
+    proto: http
+    addr: 8000
+    inspect: true

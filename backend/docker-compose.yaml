@@ -2,18 +2,20 @@ services:
   api:
     build:
       context: .
-      dockerfile: Dockerfile.${NODE_ENV:-dev}
+      dockerfile: Dockerfile
     container_name: api
     restart: unless-stopped
     ports:
-      - '${API_HTTP_PORT:-7400}:${API_HTTP_PORT:-7400}'
+      - '${API_HTTP_PORT:-8001}:${API_HTTP_PORT:-8001}'
     env_file:
-      - .env.${NODE_ENV:-dev}
+      - .env
     volumes:
       - ./src:/usr/src/app/src
       - ./package.json:/usr/src/app/package.json
       - ./tsconfig.json:/usr/src/app/tsconfig.json
       - ./nest-cli.json:/usr/src/app/nest-cli.json
+    networks:
+      - app_network
     depends_on:
       - migrations
       - db
@@ -21,28 +23,40 @@ services:
   migrations:
     build:
       context: .
-      dockerfile: Dockerfile.${NODE_ENV:-dev}
+      dockerfile: Dockerfile
     container_name: migrations
-    command: yarn typeorm migration:run -d src/config/orm.datasource.ts
+    command: yarn ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli migration:run -d src/config/orm.datasource.ts
     env_file:
-      - .env.${NODE_ENV:-dev}
+      - .env
     volumes:
       - ./src:/usr/src/app/src
       - ./package.json:/usr/src/app/package.json
       - ./tsconfig.json:/usr/src/app/tsconfig.json
+    networks:
+      - app_network
     depends_on:
       - db
 
   db:
     image: postgres:15-alpine
-    container_name: auto-access-system-db
+    container_name: db
     restart: unless-stopped
     ports:
       - '${DB_PORT:-5432}:5432'
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     env_file:
-      - .env.${NODE_ENV:-dev}
+      - .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
 
 volumes:
   postgres_data:
+
+networks:
+  app_network:
+    driver: bridge

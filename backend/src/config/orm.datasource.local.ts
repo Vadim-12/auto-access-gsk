@@ -8,16 +8,14 @@ dotenv.config({ path: '.env' });
 
 export default new DataSource({
   type: 'postgres',
-  host: process.env.DB_HOST,
+  host: 'localhost',
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: Number(process.env.DB_PORT),
   synchronize: false,
   entities: [UserEntity, RefreshTokenEntity],
-  // entities: ['src/module/user/entities/user.entity.ts'],
   migrations,
-  // migrations: ['src/module/database/migrations/index.ts'],
   migrationsRun: process.env.DB_MIGRATIONS_RUN == 'true',
   migrationsTableName: process.env.DB_MIGRATIONS_TABLE_NAME,
 });

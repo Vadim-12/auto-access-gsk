@@ -12,7 +12,7 @@ import { AuthWsGuard } from '../auth/guards/auth-ws.guard';
 
 @WebSocketGateway()
 @UseGuards(AuthWsGuard)
-export class CameraService {
+export class CameraGateway {
   @WebSocketServer()
   server: Server;
 
