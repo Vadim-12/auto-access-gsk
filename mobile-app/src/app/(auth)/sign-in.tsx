@@ -1,15 +1,10 @@
-import {
-	View,
-	Text,
-	TextInput,
-	TouchableOpacity,
-	StyleSheet,
-} from 'react-native';
-import { useAuth } from '@/hooks/useAuth';
+import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { useAuth } from '@/contexts/AuthContext';
 import { router } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useMemo, useState } from 'react';
-import { API_CONFIG } from '@/config/api';
+import { SIGN_IN_ERROR } from '@/constants/errors';
+import { authStyles } from '@/styles/auth';
 
 export default function SignIn() {
 	const { signIn } = useAuth();
@@ -18,36 +13,32 @@ export default function SignIn() {
 	const [phoneNumber, setPhoneNumber] = useState('');
 	const [password, setPassword] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
+	const [errorMessage, setErrorMessage] = useState('');
 
 	const isDisabled = useMemo(
 		() => phoneNumber.length !== 11 || password.length < 8,
 		[phoneNumber, password]
 	);
 
+	const error = useMemo(() => {
+		if (phoneNumber.length !== 11) {
+			return SIGN_IN_ERROR.NOT_VALID_PHONE_NUMBER_LENGTH;
+		} else if (!password.length) {
+			return SIGN_IN_ERROR.EMPTY_PASSWORD;
+		} else if (password.length < 6) {
+			return SIGN_IN_ERROR.INVALID_CREDENTIALS;
+		}
+	}, [phoneNumber, password]);
+
 	const handleSubmit = async () => {
-		// TODO: Реализовать реальную авторизацию
 		try {
-			setIsLoading(true);
-			console.log('API_CONFIG.baseURL', API_CONFIG.baseURL);
-			const response = await fetch(
-				`${API_CONFIG.baseURL}${API_CONFIG.endpoints.auth.login}`,
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						phoneNumber,
-						password,
-					}),
-				}
-			);
-			console.log('response', response);
-			if (!response.ok) {
-				throw new Error('Не удалось авторизоваться');
+			if (error) {
+				setErrorMessage(error);
+				return;
 			}
-			const data = await response.json();
-			signIn(data.access_token, data.refresh_token);
+			setIsLoading(true);
+			await signIn(phoneNumber, password);
+			router.push('/(app)');
 		} catch (error) {
 			console.error('Ошибка при авторизации:', error);
 		} finally {
@@ -60,14 +51,24 @@ export default function SignIn() {
 	};
 
 	return (
-		<View style={[styles.container, { backgroundColor: colors.background }]}>
-			<Text style={[styles.title, { color: colors.text }]}>Вход в аккаунт</Text>
+		<View
+			style={[authStyles.container, { backgroundColor: colors.background }]}
+		>
+			<Text style={[authStyles.title, { color: colors.text }]}>
+				Вход в аккаунт
+			</Text>
 
+			{errorMessage === SIGN_IN_ERROR.NOT_VALID_PHONE_NUMBER_LENGTH && (
+				<Text style={{ color: colors.error }}>{errorMessage}</Text>
+			)}
 			<TextInput
 				style={[
-					styles.input,
+					authStyles.input,
 					{
-						borderColor: colors.border,
+						borderColor:
+							errorMessage === SIGN_IN_ERROR.NOT_VALID_PHONE_NUMBER_LENGTH
+								? 'red'
+								: colors.border,
 						backgroundColor: colors.inputBackground,
 						color: colors.text,
 					},
@@ -80,11 +81,17 @@ export default function SignIn() {
 				onChangeText={(newValue) => setPhoneNumber(newValue)}
 			/>
 
+			{errorMessage === SIGN_IN_ERROR.EMPTY_PASSWORD && (
+				<Text style={{ color: colors.error }}>{errorMessage}</Text>
+			)}
 			<TextInput
 				style={[
-					styles.input,
+					authStyles.input,
 					{
-						borderColor: colors.border,
+						borderColor:
+							errorMessage === SIGN_IN_ERROR.EMPTY_PASSWORD
+								? 'red'
+								: colors.border,
 						backgroundColor: colors.inputBackground,
 						color: colors.text,
 					},
@@ -98,7 +105,7 @@ export default function SignIn() {
 
 			<TouchableOpacity
 				style={[
-					styles.button,
+					authStyles.button,
 					{
 						backgroundColor: colors.primary,
 						opacity: isDisabled ? 0.5 : 1,
@@ -107,52 +114,22 @@ export default function SignIn() {
 				onPress={handleSubmit}
 				disabled={isDisabled || isLoading}
 			>
-				<Text style={styles.buttonText}>
+				<Text style={authStyles.buttonText}>
 					{isLoading ? 'Загрузка...' : 'Войти'}
 				</Text>
 			</TouchableOpacity>
 
-			<TouchableOpacity onPress={handleSignUp} style={styles.link}>
-				<Text style={[styles.linkText, { color: colors.primary }]}>
+			{errorMessage === SIGN_IN_ERROR.INVALID_CREDENTIALS && (
+				<Text style={{ color: colors.error, marginTop: 20 }}>
+					{errorMessage}
+				</Text>
+			)}
+
+			<TouchableOpacity onPress={handleSignUp} style={authStyles.link}>
+				<Text style={[authStyles.linkText, { color: colors.primary }]}>
 					Нет аккаунта? Зарегистрироваться
 				</Text>
 			</TouchableOpacity>
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		padding: 20,
-		justifyContent: 'center',
-	},
-	title: {
-		fontSize: 24,
-		fontWeight: 'bold',
-		marginBottom: 20,
-		textAlign: 'center',
-	},
-	input: {
-		borderWidth: 1,
-		padding: 15,
-		borderRadius: 8,
-		marginBottom: 15,
-	},
-	button: {
-		padding: 15,
-		borderRadius: 8,
-		alignItems: 'center',
-	},
-	buttonText: {
-		fontSize: 16,
-		fontWeight: 'bold',
-	},
-	link: {
-		marginTop: 15,
-		alignItems: 'center',
-	},
-	linkText: {
-		textAlign: 'center',
-	},
-});

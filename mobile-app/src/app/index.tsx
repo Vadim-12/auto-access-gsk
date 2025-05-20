@@ -1,10 +1,21 @@
 import { Redirect } from 'expo-router';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
+import { View, ActivityIndicator } from 'react-native';
 
 export default function Index() {
-	const { isAuthenticated } = useAuth();
+	const { user, isLoading } = useAuth();
 
-	if (isAuthenticated) {
+	console.log('Index', { user, isLoading });
+
+	if (isLoading) {
+		return (
+			<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+				<ActivityIndicator size='large' />
+			</View>
+		);
+	}
+
+	if (user) {
 		return <Redirect href='/(app)' />;
 	}
 

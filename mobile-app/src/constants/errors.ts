@@ -9,7 +9,6 @@ export enum SIGN_UP_ERROR {
 
 export enum SIGN_IN_ERROR {
 	NOT_VALID_PHONE_NUMBER_LENGTH = 'Номер телефона должен состоять из 11 цифр',
-	PHONE_NUMBER_NOT_FOUND = 'Пользователь с таким номером телефона не найден',
 	EMPTY_PASSWORD = 'Вы забыли ввести пароль',
-	INVALID_PASSWORD = 'Неверный пароль',
+	INVALID_CREDENTIALS = 'Неверный номер телефона или пароль',
 }

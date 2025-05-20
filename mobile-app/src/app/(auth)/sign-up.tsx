@@ -1,18 +1,14 @@
-import {
-	View,
-	Text,
-	TextInput,
-	TouchableOpacity,
-	StyleSheet,
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useEffect, useMemo, useState } from 'react';
-import { API_CONFIG } from '@/config/api';
-import { SIGN_UP_ERROR } from '@/config/errors';
+import { useMemo, useState } from 'react';
+import { SIGN_UP_ERROR } from '@/constants/errors';
+import { useAuth } from '@/contexts/AuthContext';
+import { authStyles } from '@/styles/auth';
 
 export default function SignUp() {
 	const { colors } = useTheme();
+	const { signUp } = useAuth();
 
 	const [firstName, setFirstName] = useState('');
 	const [lastName, setLastName] = useState('');
@@ -57,33 +53,15 @@ export default function SignUp() {
 		]
 	);
 
-	useEffect(() => {
-		console.log(API_CONFIG);
-	}, []);
-
 	const handleSubmit = async () => {
 		try {
+			if (error) {
+				setErrorMessage(error);
+				return;
+			}
 			setIsLoading(true);
-			if (error) return;
-			console.log('API_CONFIG.baseURL', API_CONFIG.baseURL);
-			// const response = await fetch(
-			// 	API_CONFIG.baseURL + API_CONFIG.endpoints.auth.register,
-			// 	{
-			// 		method: 'POST',
-			// 		body: JSON.stringify({
-			// 			phoneNumber: phoneNumber,
-			// 			password: password,
-			// 			firstName: firstName,
-			// 			lastName: lastName,
-			// 			middleName: middleName,
-			// 		}),
-			// 	}
-			// );
-			// console.log('response', response);
-			// if (!response.ok) {
-			// 	throw new Error('Не удалось зарегистрироваться');
-			// }
-			// router.push('/(app)');
+			await signUp(phoneNumber, password, firstName, lastName, middleName);
+			router.push('/(app)');
 		} catch (error) {
 			console.error('Ошибка при регистрации:', error);
 		} finally {
@@ -96,19 +74,23 @@ export default function SignUp() {
 	};
 
 	return (
-		<View style={[styles.container, { backgroundColor: colors.background }]}>
-			<Text style={[styles.title, { color: colors.text }]}>Регистрация</Text>
+		<View
+			style={[authStyles.container, { backgroundColor: colors.background }]}
+		>
+			<Text style={[authStyles.title, { color: colors.text }]}>
+				Регистрация
+			</Text>
 
 			{errorMessage === SIGN_UP_ERROR.EMPTY_LAST_NAME && (
-				<Text style={{ color: 'red' }}>{errorMessage}</Text>
+				<Text style={{ color: colors.error }}>{errorMessage}</Text>
 			)}
 			<TextInput
 				style={[
-					styles.input,
+					authStyles.input,
 					{
 						borderColor:
 							errorMessage === SIGN_UP_ERROR.EMPTY_LAST_NAME
-								? 'red'
+								? colors.error
 								: colors.border,
 						backgroundColor: colors.inputBackground,
 						color: colors.text,
@@ -121,15 +103,15 @@ export default function SignUp() {
 			/>
 
 			{errorMessage === SIGN_UP_ERROR.EMPTY_FIRST_NAME && (
-				<Text style={{ color: 'red' }}>{errorMessage}</Text>
+				<Text style={{ color: colors.error }}>{errorMessage}</Text>
 			)}
 			<TextInput
 				style={[
-					styles.input,
+					authStyles.input,
 					{
 						borderColor:
 							errorMessage === SIGN_UP_ERROR.EMPTY_FIRST_NAME
-								? 'red'
+								? colors.error
 								: colors.border,
 						backgroundColor: colors.inputBackground,
 						color: colors.text,
@@ -143,7 +125,7 @@ export default function SignUp() {
 
 			<TextInput
 				style={[
-					styles.input,
+					authStyles.input,
 					{
 						borderColor: colors.border,
 						backgroundColor: colors.inputBackground,
@@ -157,15 +139,15 @@ export default function SignUp() {
 			/>
 
 			{errorMessage === SIGN_UP_ERROR.NOT_VALID_PHONE_NUMBER_LENGTH && (
-				<Text style={{ color: 'red' }}>{errorMessage}</Text>
+				<Text style={{ color: colors.error }}>{errorMessage}</Text>
 			)}
 			<TextInput
 				style={[
-					styles.input,
+					authStyles.input,
 					{
 						borderColor:
 							errorMessage === SIGN_UP_ERROR.NOT_VALID_PHONE_NUMBER_LENGTH
-								? 'red'
+								? colors.error
 								: colors.border,
 						backgroundColor: colors.inputBackground,
 						color: colors.text,
@@ -179,15 +161,15 @@ export default function SignUp() {
 			/>
 
 			{errorMessage === SIGN_UP_ERROR.PASSWORD_LENGTH_MIN && (
-				<Text style={{ color: 'red' }}>{errorMessage}</Text>
+				<Text style={{ color: colors.error }}>{errorMessage}</Text>
 			)}
 			<TextInput
 				style={[
-					styles.input,
+					authStyles.input,
 					{
 						borderColor:
 							errorMessage === SIGN_UP_ERROR.PASSWORD_LENGTH_MIN
-								? 'red'
+								? colors.error
 								: colors.border,
 						backgroundColor: colors.inputBackground,
 						color: colors.text,
@@ -204,15 +186,15 @@ export default function SignUp() {
 			/>
 
 			{errorMessage === SIGN_UP_ERROR.PASSWORDS_DO_NOT_MATCH && (
-				<Text style={{ color: 'red' }}>{errorMessage}</Text>
+				<Text style={{ color: colors.error }}>{errorMessage}</Text>
 			)}
 			<TextInput
 				style={[
-					styles.input,
+					authStyles.input,
 					{
 						borderColor:
 							errorMessage === SIGN_UP_ERROR.PASSWORDS_DO_NOT_MATCH
-								? 'red'
+								? colors.error
 								: colors.border,
 						backgroundColor: colors.inputBackground,
 						color: colors.text,
@@ -230,7 +212,7 @@ export default function SignUp() {
 
 			<TouchableOpacity
 				style={[
-					styles.button,
+					authStyles.button,
 					{
 						backgroundColor: colors.primary,
 						opacity: isDisabled ? 0.5 : 1,
@@ -239,52 +221,16 @@ export default function SignUp() {
 				onPress={handleSubmit}
 				disabled={isDisabled}
 			>
-				<Text style={styles.buttonText}>
+				<Text style={authStyles.buttonText}>
 					{isLoading ? 'Загрузка...' : 'Зарегистрироваться'}
 				</Text>
 			</TouchableOpacity>
 
-			<TouchableOpacity onPress={handleSignIn} style={styles.link}>
-				<Text style={[styles.linkText, { color: colors.primary }]}>
+			<TouchableOpacity onPress={handleSignIn} style={authStyles.link}>
+				<Text style={[authStyles.linkText, { color: colors.primary }]}>
 					Уже есть аккаунт? Войти
 				</Text>
 			</TouchableOpacity>
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		padding: 20,
-		justifyContent: 'center',
-	},
-	title: {
-		fontSize: 24,
-		fontWeight: 'bold',
-		marginBottom: 20,
-		textAlign: 'center',
-	},
-	input: {
-		borderWidth: 1,
-		padding: 15,
-		borderRadius: 8,
-		marginBottom: 15,
-	},
-	button: {
-		padding: 15,
-		borderRadius: 8,
-		alignItems: 'center',
-	},
-	buttonText: {
-		fontSize: 16,
-		fontWeight: 'bold',
-	},
-	link: {
-		marginTop: 15,
-		alignItems: 'center',
-	},
-	linkText: {
-		textAlign: 'center',
-	},
-});

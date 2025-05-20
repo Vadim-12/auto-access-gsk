@@ -11,6 +11,7 @@ interface ThemeContextType {
 		primary: string;
 		border: string;
 		inputBackground: string;
+		error: string;
 	};
 }
 
@@ -20,6 +21,7 @@ const lightColors = {
 	primary: '#007AFF',
 	border: '#DDDDDD',
 	inputBackground: '#FFFFFF',
+	error: '#FF3B30',
 };
 
 const darkColors = {
@@ -28,6 +30,7 @@ const darkColors = {
 	primary: '#0A84FF',
 	border: '#333333',
 	inputBackground: '#1C1C1E',
+	error: '#FF453A',
 };
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);

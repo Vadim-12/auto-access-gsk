@@ -5,7 +5,7 @@ import {
 	StyleSheet,
 	ActivityIndicator,
 } from 'react-native';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useState } from 'react';
 
 export default function Profile() {
@@ -15,7 +15,6 @@ export default function Profile() {
 	const handleLogout = async () => {
 		try {
 			setIsLoading(true);
-			// Здесь можно добавить очистку других данных приложения
 			await logout();
 		} catch (error) {
 			console.error('Ошибка при выходе из аккаунта:', error);

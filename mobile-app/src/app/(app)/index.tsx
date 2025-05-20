@@ -4,6 +4,8 @@ import { useTheme } from '@/contexts/ThemeContext';
 export default function Home() {
 	const { colors } = useTheme();
 
+	console.log('Home');
+
 	return (
 		<View style={[styles.container, { backgroundColor: colors.background }]}>
 			<Text style={[styles.title, { color: colors.text }]}>

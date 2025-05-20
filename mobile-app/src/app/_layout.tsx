@@ -1,30 +1,51 @@
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { View, ActivityIndicator } from 'react-native';
 import 'react-native-reanimated';
-import { ThemeProvider } from '@/contexts/ThemeContext';
+import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { KeyboardDismissView } from '@/components/KeyboardDismissView';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 export default function RootLayout() {
+	console.log('RootLayout');
+	const { colors } = useTheme();
 	const [loaded] = useFonts({
 		SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
 	});
 
 	if (!loaded) {
-		// Async font loading only occurs in development.
-		return null;
+		return (
+			<View
+				style={{
+					flex: 1,
+					justifyContent: 'center',
+					alignItems: 'center',
+					backgroundColor: colors.background,
+				}}
+			>
+				<ActivityIndicator size='large' color={colors.primary} />
+			</View>
+		);
 	}
 
 	return (
-		<KeyboardDismissView>
+		<AuthProvider>
 			<ThemeProvider>
-				<Stack>
-					<Stack.Screen name='(auth)' options={{ headerShown: false }} />
-					<Stack.Screen name='(app)' options={{ headerShown: false }} />
-					<Stack.Screen name='+not-found' />
-				</Stack>
-				<StatusBar style='auto' />
+				<KeyboardDismissView>
+					<Stack
+						screenOptions={{
+							headerShown: false,
+						}}
+					>
+						<Stack.Screen name='index' />
+						<Stack.Screen name='(auth)' />
+						<Stack.Screen name='(app)' />
+						<Stack.Screen name='+not-found' />
+					</Stack>
+					<StatusBar style='auto' />
+				</KeyboardDismissView>
 			</ThemeProvider>
-		</KeyboardDismissView>
+		</AuthProvider>
 	);
 }
