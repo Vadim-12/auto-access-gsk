@@ -1,19 +1,24 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { AppModule } from './modules/app.module';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const logger = new Logger('Bootstrap');
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+  });
   const config = app.get(ConfigService);
   app.setGlobalPrefix(config.get('API_HTTP_PREFIX'));
 
   const API_HTTP_PROTOCOL = config.get('NODE_ENV') === 'dev' ? 'http' : 'https';
   const API_HTTP_URL = `${API_HTTP_PROTOCOL}://${config.get('API_HTTP_HOST')}:${config.get('API_HTTP_PORT')}${config.get('API_HTTP_PREFIX')}`;
+  const API_WS_URL = `${API_HTTP_PROTOCOL}://${config.get('API_HTTP_HOST')}:${config.get('API_HTTP_PORT')}`;
 
-  // Настройка CORS только для веб-интерфейса, если он есть
+  // Включаем CORS для всех клиентов
   app.enableCors({
-    origin: config.get('API_CORS_ORIGIN') || false, // false отключает CORS для не-браузерных клиентов
+    origin: true, // Разрешаем все источники
     credentials: true,
   });
 
@@ -30,7 +35,8 @@ async function bootstrap() {
 
   const port = config.get('API_HTTP_PORT') || 3000;
   await app.listen(port);
-  console.log(`Server is running on port ${port}`);
-  console.log(`Docs: ${API_HTTP_URL}/docs`);
+  logger.log(`Server is running on port ${port}`);
+  logger.log(`Docs: ${API_HTTP_URL}/docs`);
+  logger.log(`WebSocket: ${API_WS_URL}`);
 }
 bootstrap();

@@ -4,3 +4,8 @@ export enum UserRoleEnum {
   ADMIN = 'admin',
   USER = 'user',
 }
+
+export enum CameraStatusEnum {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+}

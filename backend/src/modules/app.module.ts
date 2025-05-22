@@ -6,6 +6,9 @@ import { AuthModule } from './auth/auth.module';
 import { FilesModule } from './files/files.module';
 import { CameraModule } from './camera/camera.module';
 import { DatabaseModule } from './database/database.module';
+import { GarageModule } from './garage/garage.module';
+import { CarModule } from './car/car.module';
+import { GarageRequestModule } from './garage-request/garage-request.module';
 
 @Module({
   imports: [
@@ -20,6 +23,9 @@ import { DatabaseModule } from './database/database.module';
     AuthModule,
     FilesModule,
     CameraModule,
+    GarageModule,
+    CarModule,
+    GarageRequestModule,
   ],
 })
 export class AppModule {}

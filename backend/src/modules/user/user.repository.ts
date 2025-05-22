@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './entities/user.entity';
 import { DeepPartial, Repository, SelectQueryBuilder } from 'typeorm';
 import { SearchUserParams } from './user.types';
+import { UserRoleEnum } from '../../consts';
+import { GetUserFilterDto } from './dto/get-users-filter.dto';
 
 @Injectable()
 export class UserRepository {
@@ -66,13 +68,64 @@ export class UserRepository {
     return query;
   }
 
-  async findByPhoneNumber(
-    phoneNumber: string,
-  ): Promise<UserEntity | undefined> {
-    return this.userRepository.findOneBy({ phoneNumber: phoneNumber });
+  async findByPhoneNumber(phoneNumber: string): Promise<UserEntity | null> {
+    return this.userRepository.findOne({
+      where: { phoneNumber },
+    });
   }
 
-  async findById(userId: string): Promise<UserEntity | undefined> {
-    return this.userRepository.findOneBy({ userId: userId });
+  async findById(id: string): Promise<UserEntity> {
+    return this.userRepository.findOneOrFail({
+      where: { userId: id },
+    });
+  }
+
+  async findByRole(role: UserRoleEnum): Promise<UserEntity | null> {
+    return this.userRepository.findOne({
+      where: { role },
+    });
+  }
+
+  async findAll(filter: GetUserFilterDto): Promise<[UserEntity[], number]> {
+    const queryBuilder = this.userRepository.createQueryBuilder('user');
+
+    if (filter.userIds?.length) {
+      queryBuilder.andWhere('user.userId IN (:...userIds)', {
+        userIds: filter.userIds,
+      });
+    }
+
+    if (filter.phoneNumbers?.length) {
+      queryBuilder.andWhere('user.phoneNumber IN (:...phoneNumbers)', {
+        phoneNumbers: filter.phoneNumbers,
+      });
+    }
+
+    if (filter.take) {
+      queryBuilder.take(filter.take);
+    }
+
+    if (filter.skip) {
+      queryBuilder.skip(filter.skip);
+    }
+
+    return queryBuilder.getManyAndCount();
+  }
+
+  async update(updateUserDto: DeepPartial<UserEntity>): Promise<UserEntity> {
+    const user = await this.findById(updateUserDto.userId);
+    Object.assign(user, updateUserDto);
+    return this.userRepository.save(user);
+  }
+
+  async removeById(id: string): Promise<void> {
+    await this.userRepository.delete(id);
+  }
+
+  async hasAnyAdmin(): Promise<boolean> {
+    const admin = await this.userRepository.findOne({
+      where: { role: UserRoleEnum.ADMIN },
+    });
+    return !!admin;
   }
 }

@@ -1,6 +1,16 @@
-import { UserRoleEnum } from 'src/consts';
-import { RefreshTokenEntity } from 'src/modules/auth/entities/refresh-token.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { UserRoleEnum } from '../../../consts';
+import { RefreshTokenEntity } from '../../auth/entities/refresh-token.entity';
+import {
+  Column,
+  Entity,
+  ManyToMany,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  JoinTable,
+} from 'typeorm';
+import { GarageEntity } from '../../garage/entities/garage.entity';
+import { CarEntity } from '../../car/entities/car.entity';
+import { GarageRequestEntity } from '../../garage-request/entities/garage-request.entity';
 
 @Entity({
   name: 'user',
@@ -21,17 +31,9 @@ export class UserEntity {
   role: UserRoleEnum;
 
   @Column('varchar', {
-    comment: 'User phone number',
-    nullable: false,
-    length: 20,
-    unique: true,
-  })
-  phoneNumber: string;
-
-  @Column('varchar', {
     comment: 'User password hash',
-    length: 254,
     nullable: false,
+    length: 100,
   })
   passwordHash: string;
 
@@ -50,6 +52,13 @@ export class UserEntity {
   lastName: string;
 
   @Column('varchar', {
+    comment: 'User phone number',
+    nullable: true,
+    length: 20,
+  })
+  phoneNumber?: string;
+
+  @Column('varchar', {
     comment: 'User middle name',
     nullable: true,
     length: 50,
@@ -58,4 +67,24 @@ export class UserEntity {
 
   @OneToMany(() => RefreshTokenEntity, (refreshToken) => refreshToken.user)
   refreshTokens: RefreshTokenEntity[];
+
+  @ManyToMany(() => GarageEntity, (garage) => garage.users)
+  @JoinTable({
+    name: 'user_garage',
+    joinColumn: {
+      name: 'user_id',
+      referencedColumnName: 'userId',
+    },
+    inverseJoinColumn: {
+      name: 'garage_id',
+      referencedColumnName: 'garageId',
+    },
+  })
+  garages: GarageEntity[];
+
+  @OneToMany(() => CarEntity, (car) => car.owner)
+  cars: CarEntity[];
+
+  @OneToMany(() => GarageRequestEntity, (request) => request.user)
+  garageRequests: GarageRequestEntity[];
 }

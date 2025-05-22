@@ -4,7 +4,9 @@ import {
   IsOptional,
   IsPhoneNumber,
   IsString,
+  IsEnum,
 } from 'class-validator';
+import { UserRoleEnum } from '../../../consts';
 
 export class CreateUserDto {
   @ApiProperty({
@@ -16,13 +18,13 @@ export class CreateUserDto {
   phoneNumber: string;
 
   @ApiProperty({
-    description: 'User password hash',
+    description: 'User password',
     required: true,
     type: String,
   })
   @IsString()
   @IsNotEmpty()
-  passwordHash: string;
+  password: string;
 
   @ApiProperty({
     description: 'User first name',
@@ -44,10 +46,20 @@ export class CreateUserDto {
 
   @ApiProperty({
     description: 'User middle name',
-    required: true,
+    required: false,
     type: String,
   })
   @IsString()
   @IsOptional()
   middleName?: string;
+
+  @ApiProperty({
+    description: 'User role',
+    required: false,
+    enum: UserRoleEnum,
+    default: UserRoleEnum.USER,
+  })
+  @IsEnum(UserRoleEnum)
+  @IsOptional()
+  role?: UserRoleEnum;
 }

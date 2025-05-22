@@ -8,7 +8,7 @@ import {
   IsString,
 } from 'class-validator';
 import { UserEntity } from '../entities/user.entity';
-import { UserRoleEnum } from 'src/consts';
+import { UserRoleEnum } from '../../../consts';
 
 export class UserDto {
   @ApiProperty({
@@ -40,8 +40,8 @@ export class UserDto {
   phoneNumber: string;
 
   @ApiProperty({
-    description: 'Password of user',
-    required: false,
+    description: 'Password hash of user',
+    required: true,
     type: String,
     example: '********',
   })
@@ -78,6 +78,6 @@ export class UserDto {
   middleName?: string;
 
   constructor(entity: Partial<UserEntity>) {
-    return plainToInstance(UserDto, entity, { excludeExtraneousValues: true });
+    return plainToInstance(UserDto, entity);
   }
 }

@@ -13,7 +13,8 @@ import { LogoutDto } from './dto/logout.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SignInDto } from './dto/sign-in.dto';
 import * as bcrypt from 'bcrypt';
-import { UserRoleEnum } from 'src/consts';
+import { UserRoleEnum } from '../../consts';
+import { UserDto } from '../user/dto/user.dto';
 
 @Injectable()
 export class AuthService {
@@ -26,23 +27,50 @@ export class AuthService {
 
   async signUp(dto: SignUpDto) {
     console.log('/api/auth/sign-up [POST] dto', dto);
-    const passwordHash = await bcrypt.hash(dto.password, 10);
-    delete dto.password;
-    await this.userService.create({ ...dto, passwordHash });
+    const createdUser = await this.userService.create({
+      ...dto,
+      role: UserRoleEnum.USER,
+    });
+
+    const payload = { userId: createdUser.userId, role: createdUser.role };
+    const access = this.tokensService.signAccess(payload);
+    const refresh = this.tokensService.signRefresh(payload);
+    const refreshToken = this.refreshTokenRepository.create({
+      refreshToken: refresh,
+      user: createdUser,
+    });
+    await this.refreshTokenRepository.save(refreshToken);
+    return { tokens: { access, refresh }, user: createdUser };
   }
 
-  async signIn(dto: SignInDto): Promise<JwtDto> {
+  async signIn(dto: SignInDto): Promise<{
+    tokens: { access: string; refresh: string };
+    user: UserDto;
+  }> {
     console.log('/api/auth/sign-in [POST] dto', dto);
     const user = await this.userService.findByPhoneNumber(dto.phoneNumber);
     if (!user) {
       throw new NotFoundException(
-        `User with phoneNumber ${dto.phoneNumber} not found`,
+        `Пользователь с номером ${dto.phoneNumber} не найден`,
       );
+    }
+    const isPasswordValid = await bcrypt.compare(
+      dto.password,
+      user.passwordHash,
+    );
+    console.log('/api/auth/sign-in [POST] isPasswordValid', isPasswordValid);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Неверный пароль');
     }
     const payload = { userId: user.userId, role: user.role };
     const access = this.tokensService.signAccess(payload);
     const refresh = this.tokensService.signRefresh(payload);
-    return { access, refresh };
+    const refreshToken = this.refreshTokenRepository.create({
+      refreshToken: refresh,
+      user,
+    });
+    await this.refreshTokenRepository.save(refreshToken);
+    return { tokens: { access, refresh }, user };
   }
 
   async refreshTokens(dto: RefreshJwtDto): Promise<JwtDto> {
@@ -64,12 +92,27 @@ export class AuthService {
       );
     }
 
+    const refreshToken = await this.refreshTokenRepository.findOne({
+      where: { user, refreshToken: dto.refresh },
+    });
+    if (!refreshToken) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+    await this.refreshTokenRepository.delete(refreshToken);
+
     const payload = {
       userId: user.userId,
       role: user.role,
     };
     const access = this.tokensService.signAccess(payload);
     const refresh = this.tokensService.signRefresh(payload);
+
+    const newRefreshToken = this.refreshTokenRepository.create({
+      refreshToken: refresh,
+      user,
+    });
+    await this.refreshTokenRepository.save(newRefreshToken);
+
     return { access, refresh };
   }
 
