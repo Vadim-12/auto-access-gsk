@@ -1,11 +1,11 @@
 import { useCallback } from 'react';
-import axios from 'axios';
 import { UserRoleEnum } from '../constants/user-role';
 import { API_HTTP_URL } from '@/constants/config';
 import * as SecureStore from 'expo-secure-store';
 import { useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
+import { api } from '../lib/api';
 
 interface User {
 	userId: string;
@@ -32,13 +32,10 @@ interface RefreshResponse {
 export const useAuthApi = () => {
 	const signIn = useCallback(
 		async (phoneNumber: string, password: string): Promise<AuthResponse> => {
-			const { data } = await axios.post<AuthResponse>(
-				`${API_HTTP_URL}/auth/sign-in`,
-				{
-					phoneNumber,
-					password,
-				}
-			);
+			const { data } = await api.post<AuthResponse>(`/auth/sign-in`, {
+				phoneNumber,
+				password,
+			});
 			return data;
 		},
 		[]
@@ -52,8 +49,8 @@ export const useAuthApi = () => {
 			lastName: string,
 			middleName?: string
 		): Promise<AuthResponse> => {
-			const { data } = await axios.post<AuthResponse>(
-				`${API_HTTP_URL}/auth/sign-up`,
+			const { data, status, statusText } = await api.post<AuthResponse>(
+				`/auth/sign-up`,
 				{
 					phoneNumber,
 					password,
@@ -62,23 +59,21 @@ export const useAuthApi = () => {
 					middleName,
 				}
 			);
+			console.log('useAuthApi data signUp', data, status, statusText);
 			return data;
 		},
 		[]
 	);
 
 	const refreshTokens = useCallback(async (): Promise<RefreshResponse> => {
-		const { data } = await axios.put<RefreshResponse>(
-			`${API_HTTP_URL}/auth/refresh`,
-			{
-				refreshToken: await SecureStore.getItemAsync('refresh_token'),
-			}
-		);
+		const { data } = await api.put<RefreshResponse>(`/auth/refresh`, {
+			refreshToken: await SecureStore.getItemAsync('refresh_token'),
+		});
 		return data;
 	}, []);
 
 	const logout = useCallback(async (): Promise<void> => {
-		await axios.post(`${API_HTTP_URL}/auth/logout`, {
+		await api.post(`/auth/logout`, {
 			refreshToken: await SecureStore.getItemAsync('refresh_token'),
 		});
 	}, []);

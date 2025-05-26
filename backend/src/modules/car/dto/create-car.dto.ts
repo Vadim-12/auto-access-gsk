@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber, Length } from 'class-validator';
 
 export class CreateCarDto {
   @ApiProperty({
@@ -41,4 +41,13 @@ export class CreateCarDto {
   @IsString()
   @IsNotEmpty()
   color: string;
+
+  @ApiProperty({
+    description: 'VIN-код автомобиля',
+    example: 'XTA210999Y1234567',
+  })
+  @IsString()
+  @IsNotEmpty()
+  @Length(17, 17, { message: 'VIN-код должен содержать ровно 17 символов' })
+  vin: string;
 }

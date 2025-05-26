@@ -16,7 +16,7 @@ export class UserService {
     );
     if (existedUser) {
       throw new ConflictException(
-        `User with phoneNumber ${createUserDto.phoneNumber} already exists`,
+        `Пользователь с номером телефона ${createUserDto.phoneNumber} уже существует`,
       );
     }
 

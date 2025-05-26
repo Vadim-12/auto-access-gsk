@@ -52,8 +52,8 @@ export default function RequestScreen() {
 				);
 				setRequestDetails(response.data);
 			} catch (err) {
-				console.error('Error fetching request details:', err);
-				Alert.alert('Ошибка', 'Не удалось загрузить информацию о заявке');
+				console.log('Error fetching request details:', err);
+				Alert.alert('Ошибка', 'Не удалось загрузить детали запроса');
 			} finally {
 				setIsLoadingDetails(false);
 			}
@@ -73,11 +73,8 @@ export default function RequestScreen() {
 			await fetchGarages();
 			router.back();
 		} catch (err) {
-			console.error('Error handling request:', err);
-			Alert.alert(
-				'Ошибка',
-				'Не удалось обновить статус заявки. Пожалуйста, попробуйте снова.'
-			);
+			console.log('Error handling request:', err);
+			Alert.alert('Ошибка', 'Не удалось обработать запрос');
 		} finally {
 			setIsLoading(false);
 		}

@@ -46,7 +46,7 @@ export class UserRepository {
     const query = this.userRepository.createQueryBuilder(alias);
 
     if (params?.userIds?.length) {
-      query[specific + 'Where'](`${alias}.userId in (:...userIds)`, {
+      query[specific + 'Where'](`${alias}.user_id in (:...userIds)`, {
         userIds: params.userIds,
       });
     }
@@ -90,7 +90,7 @@ export class UserRepository {
     const queryBuilder = this.userRepository.createQueryBuilder('user');
 
     if (filter.userIds?.length) {
-      queryBuilder.andWhere('user.userId IN (:...userIds)', {
+      queryBuilder.andWhere('user.user_id IN (:...userIds)', {
         userIds: filter.userIds,
       });
     }
@@ -118,8 +118,8 @@ export class UserRepository {
     return this.userRepository.save(user);
   }
 
-  async removeById(id: string): Promise<void> {
-    await this.userRepository.delete(id);
+  async removeById(userId: string): Promise<void> {
+    await this.userRepository.delete(userId);
   }
 
   async hasAnyAdmin(): Promise<boolean> {

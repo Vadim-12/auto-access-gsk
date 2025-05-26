@@ -6,45 +6,71 @@ export class AddUserGarageAndGskRelations1747603467121
   name = 'AddUserGarageAndGskRelations1747603467121';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Добавляем связь между ГСК и администратором
-    await queryRunner.query(`ALTER TABLE "gsk" ADD COLUMN "admin_id" uuid`);
-    await queryRunner.query(
-      `ALTER TABLE "gsk" ADD CONSTRAINT "FK_gsk_admin" FOREIGN KEY ("admin_id") REFERENCES "user"("user_id") ON DELETE SET NULL`,
-    );
-
-    // Создаем таблицу связи между пользователями и гаражами
-    await queryRunner.query(
-      `CREATE TABLE "user_garage" (
+    await queryRunner.query(`
+      CREATE TABLE "user_garages" (
+        "user_garage_id" uuid NOT NULL DEFAULT uuid_generate_v4(),
         "user_id" uuid NOT NULL,
         "garage_id" uuid NOT NULL,
-        CONSTRAINT "PK_user_garage" PRIMARY KEY ("user_id", "garage_id"),
-        CONSTRAINT "FK_user_garage_user" FOREIGN KEY ("user_id") REFERENCES "user"("user_id") ON DELETE CASCADE,
-        CONSTRAINT "FK_user_garage_garage" FOREIGN KEY ("garage_id") REFERENCES "garage"("garage_id") ON DELETE CASCADE
-      )`,
+        "created_at" TIMESTAMP NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_user_garage" PRIMARY KEY ("user_garage_id"),
+        CONSTRAINT "FK_user_garage_user" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE CASCADE,
+        CONSTRAINT "FK_user_garage_garage" FOREIGN KEY ("garage_id") REFERENCES "garages"("garage_id") ON DELETE CASCADE
+      )
+    `);
+
+    await queryRunner.query(`
+      CREATE TABLE "garage_requests" (
+        "request_id" uuid NOT NULL DEFAULT uuid_generate_v4(),
+        "user_id" uuid NOT NULL,
+        "garage_id" uuid NOT NULL,
+        "status" character varying(20) NOT NULL DEFAULT 'pending',
+        "created_at" TIMESTAMP NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_garage_request" PRIMARY KEY ("request_id"),
+        CONSTRAINT "FK_garage_request_user" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE CASCADE,
+        CONSTRAINT "FK_garage_request_garage" FOREIGN KEY ("garage_id") REFERENCES "garages"("garage_id") ON DELETE CASCADE
+      )
+    `);
+
+    await queryRunner.query(
+      `COMMENT ON COLUMN "user_garages"."user_garage_id" IS 'User garage relation UUID'`,
+    );
+    await queryRunner.query(
+      `COMMENT ON COLUMN "user_garages"."user_id" IS 'User UUID'`,
+    );
+    await queryRunner.query(
+      `COMMENT ON COLUMN "user_garages"."garage_id" IS 'Garage UUID'`,
+    );
+    await queryRunner.query(
+      `COMMENT ON COLUMN "user_garages"."created_at" IS 'Created at timestamp'`,
+    );
+    await queryRunner.query(
+      `COMMENT ON COLUMN "user_garages"."updated_at" IS 'Updated at timestamp'`,
     );
 
-    // Добавляем связь между камерой и гаражем
-    await queryRunner.query(`ALTER TABLE "camera" ADD COLUMN "garage_id" uuid`);
     await queryRunner.query(
-      `ALTER TABLE "camera" ADD CONSTRAINT "FK_camera_garage" FOREIGN KEY ("garage_id") REFERENCES "garage"("garage_id") ON DELETE CASCADE`,
+      `COMMENT ON COLUMN "garage_requests"."request_id" IS 'Garage request UUID'`,
     );
     await queryRunner.query(
-      `ALTER TABLE "camera" ADD CONSTRAINT "UQ_camera_garage" UNIQUE ("garage_id")`,
+      `COMMENT ON COLUMN "garage_requests"."user_id" IS 'User UUID'`,
+    );
+    await queryRunner.query(
+      `COMMENT ON COLUMN "garage_requests"."garage_id" IS 'Garage UUID'`,
+    );
+    await queryRunner.query(
+      `COMMENT ON COLUMN "garage_requests"."status" IS 'Request status'`,
+    );
+    await queryRunner.query(
+      `COMMENT ON COLUMN "garage_requests"."created_at" IS 'Created at timestamp'`,
+    );
+    await queryRunner.query(
+      `COMMENT ON COLUMN "garage_requests"."updated_at" IS 'Updated at timestamp'`,
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    // Удаляем связь между камерой и гаражем
-    await queryRunner.query(
-      `ALTER TABLE "camera" DROP CONSTRAINT "UQ_camera_garage"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "camera" DROP CONSTRAINT "FK_camera_garage"`,
-    );
-    await queryRunner.query(`ALTER TABLE "camera" DROP COLUMN "garage_id"`);
-
-    await queryRunner.query(`DROP TABLE "user_garage"`);
-    await queryRunner.query(`ALTER TABLE "gsk" DROP CONSTRAINT "FK_gsk_admin"`);
-    await queryRunner.query(`ALTER TABLE "gsk" DROP COLUMN "admin_id"`);
+    await queryRunner.query(`DROP TABLE "garage_requests"`);
+    await queryRunner.query(`DROP TABLE "user_garages"`);
   }
 }

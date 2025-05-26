@@ -2,7 +2,7 @@
 FROM node:20-alpine
 
 # Устанавливаем глобально nodemon
-RUN npm install -g nodemon
+RUN yarn global add nodemon
 
 # Создаем директорию приложения
 WORKDIR /usr/src/app
@@ -12,6 +12,9 @@ COPY package.json yarn.lock ./
 
 # Устанавливаем зависимости
 RUN yarn install
+
+# Копируем исходный код
+COPY . .
 
 # Копируем конфигурацию nodemon
 COPY nodemon.json ./

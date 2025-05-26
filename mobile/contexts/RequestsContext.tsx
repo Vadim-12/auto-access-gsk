@@ -42,9 +42,9 @@ export function RequestsProvider({ children }: { children: React.ReactNode }) {
 			setRequests(response.data);
 			setError(null);
 		} catch (err) {
-			console.error('Error fetching requests:', err);
+			console.log('Error fetching requests:', err);
 			setError(
-				err instanceof Error ? err : new Error('Не удалось загрузить заявки')
+				err instanceof Error ? err : new Error('Не удалось загрузить запросы')
 			);
 		} finally {
 			setIsLoading(false);

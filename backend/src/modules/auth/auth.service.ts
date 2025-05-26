@@ -82,13 +82,15 @@ export class AuthService {
     try {
       jwtPayload = await this.tokensService.verifyRefresh(dto.refresh);
     } catch {
-      throw new UnauthorizedException('Invalid or expired refresh token');
+      throw new UnauthorizedException(
+        'Неверный или просроченный refresh-токен',
+      );
     }
 
     const user = await this.userService.findById(jwtPayload.userId);
     if (!user) {
       throw new NotFoundException(
-        `User with ID ${jwtPayload.userId} not found`,
+        `Пользователь с ID ${jwtPayload.userId} не найден`,
       );
     }
 
@@ -96,9 +98,13 @@ export class AuthService {
       where: { user, refreshToken: dto.refresh },
     });
     if (!refreshToken) {
-      throw new UnauthorizedException('Invalid or expired refresh token');
+      throw new UnauthorizedException(
+        'Неверный или просроченный refresh-токен',
+      );
     }
-    await this.refreshTokenRepository.delete(refreshToken);
+    await this.refreshTokenRepository.delete({
+      refreshToken: refreshToken.refreshToken,
+    });
 
     const payload = {
       userId: user.userId,
@@ -118,7 +124,13 @@ export class AuthService {
 
   async logout(dto: LogoutDto): Promise<void> {
     console.log('/api/auth/logout [POST] dto', dto);
-    const { refreshToken } = dto;
-    await this.refreshTokenRepository.delete({ refreshToken });
+    const refreshToken = await this.refreshTokenRepository.findOne({
+      where: { refreshToken: dto.refreshToken },
+    });
+    if (refreshToken) {
+      await this.refreshTokenRepository.delete({
+        refreshToken: refreshToken.refreshToken,
+      });
+    }
   }
 }

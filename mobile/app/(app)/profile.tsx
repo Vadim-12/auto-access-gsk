@@ -4,6 +4,7 @@ import {
 	TouchableOpacity,
 	StyleSheet,
 	ActivityIndicator,
+	Alert,
 } from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState } from 'react';
@@ -20,7 +21,8 @@ export default function ProfileScreen() {
 			setIsLoading(true);
 			await logout();
 		} catch (error) {
-			console.error('Ошибка при выходе из аккаунта:', error);
+			console.log('Ошибка при выходе из аккаунта:', error);
+			Alert.alert('Ошибка', 'Не удалось выйти из аккаунта');
 		} finally {
 			setIsLoading(false);
 		}

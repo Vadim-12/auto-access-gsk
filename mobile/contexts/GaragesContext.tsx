@@ -1,16 +1,23 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { api } from '../lib/api';
+import { GarageGateStatusEnum } from '@/constants/statuses';
+import { AxiosError } from 'axios';
 
 export interface Garage {
 	garageId: string;
-	number: string;
+	number: number;
 	description?: string;
-	gateIp: string;
-	gatePort: number;
+	gateStatus: GarageGateStatusEnum;
+	gate: {
+		ip: string;
+		port: number;
+		status: GarageGateStatusEnum;
+	};
 	camera?: {
 		cameraId: string;
 		ip: string;
-		port: number;
+		streamPort: number;
+		snapshotPort: number;
 		status: string;
 		name: string;
 		description?: string;
@@ -36,6 +43,7 @@ export interface Garage {
 interface GarageAccessRequest {
 	requestId: string;
 	status: 'PENDING' | 'APPROVED' | 'REJECTED';
+	type: 'ACCESS' | 'UNLINK';
 	description?: string;
 	createdAt: string;
 	updatedAt: string;
@@ -81,8 +89,9 @@ interface GaragesContextType {
 		gateIp: string;
 		gatePort: number;
 		description?: string;
-		cameraIp: string;
-		cameraPort: number;
+		cameraIp?: string;
+		cameraStreamPort?: number;
+		cameraSnapshotPort?: number;
 	}) => Promise<void>;
 }
 
@@ -137,9 +146,18 @@ export function GaragesProvider({ children }: { children: React.ReactNode }) {
 			setIsLoading(true);
 			setError(null);
 			try {
-				await api.post('/garages/access-requests', { garageId });
+				console.log('Creating access request in context:', { garageId });
+				const response = await api.post('/garages/access-requests', {
+					garageId,
+				});
+				console.log('Access request created:', response.data);
 				await fetchAccessRequests();
 			} catch (err) {
+				console.log('Error creating access request:', {
+					error: err,
+					message: err instanceof Error ? err.message : 'Unknown error',
+					response: err instanceof AxiosError ? err.response?.data : undefined,
+				});
 				setError(
 					err instanceof Error
 						? err
@@ -161,8 +179,9 @@ export function GaragesProvider({ children }: { children: React.ReactNode }) {
 			gateIp: string;
 			gatePort: number;
 			description?: string;
-			cameraIp: string;
-			cameraPort: number;
+			cameraIp?: string;
+			cameraStreamPort?: number;
+			cameraSnapshotPort?: number;
 		}) => {
 			setIsLoading(true);
 			setError(null);

@@ -4,11 +4,13 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { UserEntity } from '../../user/entities/user.entity';
 
 @Entity({
-  name: 'car',
+  name: 'cars',
 })
 export class CarEntity {
   @PrimaryGeneratedColumn('uuid', {
@@ -41,7 +43,7 @@ export class CarEntity {
     comment: 'Car license plate',
     nullable: false,
     length: 20,
-    unique: true,
+    name: 'license_plate',
   })
   licensePlate: string;
 
@@ -52,7 +54,21 @@ export class CarEntity {
   })
   color: string;
 
+  @Column('varchar', {
+    comment: 'Vehicle Identification Number',
+    nullable: false,
+    length: 17,
+    name: 'vin',
+  })
+  vin: string;
+
   @ManyToOne(() => UserEntity, (user) => user.cars)
   @JoinColumn({ name: 'user_id' })
   owner: UserEntity;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
 }

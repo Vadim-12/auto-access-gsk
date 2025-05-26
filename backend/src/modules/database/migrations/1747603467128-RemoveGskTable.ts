@@ -13,16 +13,16 @@ export class RemoveGskTable1747603467128 implements MigrationInterface {
           IF EXISTS (
             SELECT 1 
             FROM information_schema.table_constraints 
-            WHERE constraint_name IN ('FK_garage_request_gsk', 'fk_garage_request_gsk')
+            WHERE constraint_name IN ('FK_garage_gsk', 'fk_garage_gsk')
           ) THEN
-            ALTER TABLE garage_request DROP CONSTRAINT IF EXISTS FK_garage_request_gsk;
-            ALTER TABLE garage_request DROP CONSTRAINT IF EXISTS fk_garage_request_gsk;
+            ALTER TABLE garages DROP CONSTRAINT IF EXISTS FK_garage_gsk;
+            ALTER TABLE garages DROP CONSTRAINT IF EXISTS fk_garage_gsk;
           END IF;
         END $$;
       `);
 
-      // Удаляем таблицу gsk
-      await queryRunner.query(`DROP TABLE IF EXISTS gsk`);
+      // Удаляем таблицу gsk с CASCADE
+      await queryRunner.query(`DROP TABLE IF EXISTS gsk CASCADE`);
     }
   }
 
@@ -30,12 +30,12 @@ export class RemoveGskTable1747603467128 implements MigrationInterface {
     // Восстанавливаем таблицу gsk
     await queryRunner.query(`
       CREATE TABLE IF NOT EXISTS gsk (
-        gsk_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        gskId UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         name VARCHAR(255) NOT NULL,
         address VARCHAR(255) NOT NULL,
         description TEXT,
-        created_at TIMESTAMP NOT NULL DEFAULT now(),
-        updated_at TIMESTAMP NOT NULL DEFAULT now()
+        createdAt TIMESTAMP NOT NULL DEFAULT now(),
+        updatedAt TIMESTAMP NOT NULL DEFAULT now()
       );
     `);
   }

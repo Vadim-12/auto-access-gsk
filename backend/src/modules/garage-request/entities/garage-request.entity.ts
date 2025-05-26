@@ -22,7 +22,7 @@ export enum GarageRequestTypeEnum {
 }
 
 @Entity({
-  name: 'garage_request',
+  name: 'garage_requests',
 })
 export class GarageRequestEntity {
   @PrimaryGeneratedColumn('uuid', {
@@ -51,6 +51,7 @@ export class GarageRequestEntity {
     comment: 'Request description',
     nullable: true,
     length: 255,
+    name: 'description',
   })
   description?: string;
 
@@ -69,9 +70,9 @@ export class GarageRequestEntity {
   })
   adminComment?: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }

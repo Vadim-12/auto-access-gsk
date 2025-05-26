@@ -9,13 +9,15 @@ import {
   JoinTable,
   CreateDateColumn,
   UpdateDateColumn,
+  JoinColumn,
 } from 'typeorm';
 import { CameraEntity } from '../../camera/entities/camera.entity';
 import { UserEntity } from '../../user/entities/user.entity';
 import { GarageRequestEntity } from '../../garage-request/entities/garage-request.entity';
+import { GateEntity } from '../../gate/entities/gate.entity';
 
 @Entity({
-  name: 'garage',
+  name: 'garages',
 })
 export class GarageEntity {
   @PrimaryGeneratedColumn('uuid', {
@@ -24,39 +26,28 @@ export class GarageEntity {
   })
   readonly garageId: string;
 
-  @Column('varchar', {
-    comment: 'Garage number',
-    nullable: false,
+  @Column({
     length: 10,
+    comment: 'Garage number',
   })
   number: string;
 
-  @Column('varchar', {
-    comment: 'Garage description',
-    nullable: true,
+  @Column({
     length: 255,
+    nullable: true,
+    comment: 'Garage description',
   })
   description?: string;
-
-  @Column('varchar', {
-    comment: 'Gate IP address',
-    nullable: false,
-    length: 15,
-  })
-  gateIp: string;
-
-  @Column('int', {
-    comment: 'Gate port',
-    nullable: false,
-  })
-  gatePort: number;
 
   @OneToOne(() => CameraEntity, (camera) => camera.garage)
   camera: CameraEntity;
 
+  @OneToOne(() => GateEntity, (gate) => gate.garage)
+  gate: GateEntity;
+
   @ManyToMany(() => UserEntity, (user) => user.garages)
   @JoinTable({
-    name: 'user_garage',
+    name: 'user_garages',
     joinColumn: {
       name: 'garage_id',
       referencedColumnName: 'garageId',
@@ -71,15 +62,13 @@ export class GarageEntity {
   @OneToMany(() => GarageRequestEntity, (request) => request.garage)
   requests: GarageRequestEntity[];
 
-  @ManyToOne(() => UserEntity, { eager: true })
+  @ManyToOne(() => UserEntity)
+  @JoinColumn({ name: 'admin_user_id' })
   admin: UserEntity;
 
-  @OneToMany(() => GarageRequestEntity, (request) => request.garage)
-  accessRequests: GarageRequestEntity[];
-
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }

@@ -1,15 +1,16 @@
 import {
   Column,
   Entity,
+  JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
-  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
-import { CameraStatusEnum } from '../../../consts';
 import { GarageEntity } from '../../garage/entities/garage.entity';
 
 @Entity({
-  name: 'camera',
+  name: 'cameras',
 })
 export class CameraEntity {
   @PrimaryGeneratedColumn('uuid', {
@@ -18,42 +19,36 @@ export class CameraEntity {
   })
   readonly cameraId: string;
 
-  @Column('varchar', {
-    comment: 'Camera IP address',
-    nullable: false,
+  @Column({
     length: 15,
+    name: 'ip',
+    comment: 'Camera IP address',
   })
   ip: string;
 
-  @Column('int', {
-    comment: 'Camera port',
-    nullable: false,
+  @Column({
+    name: 'stream_port',
+    comment: 'Camera stream port',
+    default: 81,
+    nullable: true,
   })
-  port: number;
+  streamPort: number;
+
+  @Column({
+    name: 'snapshot_port',
+    comment: 'Camera snapshot port',
+    default: 80,
+    nullable: true,
+  })
+  snapshotPort: number;
 
   @OneToOne(() => GarageEntity, (garage) => garage.camera)
   @JoinColumn({ name: 'garage_id' })
   garage: GarageEntity;
 
-  @Column('enum', {
-    comment: 'Camera status',
-    nullable: false,
-    enum: CameraStatusEnum,
-    default: CameraStatusEnum.INACTIVE,
-  })
-  status: CameraStatusEnum;
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
 
-  @Column('varchar', {
-    comment: 'Camera name',
-    nullable: false,
-    length: 100,
-  })
-  name: string;
-
-  @Column('varchar', {
-    comment: 'Camera description',
-    nullable: true,
-    length: 255,
-  })
-  description?: string;
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
 }

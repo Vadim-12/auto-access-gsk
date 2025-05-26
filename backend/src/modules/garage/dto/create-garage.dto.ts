@@ -32,5 +32,21 @@ export class CreateGarageDto {
 
   @IsInt()
   @IsPort()
+  @IsNotEmpty()
   gatePort: number;
+
+  @IsString()
+  @IsIP()
+  @IsOptional()
+  cameraIp?: string;
+
+  @IsInt()
+  @IsPort()
+  @IsOptional()
+  cameraStreamPort?: number;
+
+  @IsInt()
+  @IsPort()
+  @IsOptional()
+  cameraSnapshotPort?: number;
 }

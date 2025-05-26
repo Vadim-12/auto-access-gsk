@@ -6,6 +6,7 @@ import {
 	TouchableOpacity,
 	FlatList,
 	ActivityIndicator,
+	Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useAvailableGarages } from '@/hooks/garages/useAvailableGarages';
@@ -34,6 +35,12 @@ export default function RequestAccessScreen() {
 	useEffect(() => {
 		fetchAccessRequests();
 	}, [fetchAccessRequests]);
+
+	useEffect(() => {
+		if (garages.length > 0) {
+			setGarages(garages);
+		}
+	}, [garages, setGarages]);
 
 	useEffect(() => {
 		if (accessRequests.length > 0) {
@@ -70,11 +77,18 @@ export default function RequestAccessScreen() {
 				(r) => r.garage?.garageId === garageId
 			);
 
+			console.log('User requests for garage:', {
+				garageId,
+				requests: userRequests,
+			});
+
 			// Получаем последнюю заявку
 			const lastRequest = userRequests.sort(
 				(a, b) =>
 					new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
 			)[0];
+
+			console.log('Last request:', lastRequest);
 
 			// Если есть активная заявка, отзываем её
 			if (lastRequest?.status === 'PENDING') {
@@ -92,7 +106,7 @@ export default function RequestAccessScreen() {
 					setGarages(updatedGarages);
 				} catch (deleteError: unknown) {
 					if (deleteError instanceof AxiosError) {
-						console.error('Error details:', {
+						console.log('Error details:', {
 							url: `/garage-requests/${lastRequest.requestId}`,
 							status: deleteError.response?.status,
 							data: deleteError.response?.data,
@@ -106,18 +120,29 @@ export default function RequestAccessScreen() {
 			} else {
 				// Если нет активной заявки, создаем новую
 				console.log('Creating new request for garage:', garageId);
-				await createAccessRequest(garageId);
-				await fetchAccessRequests();
+				try {
+					await createAccessRequest(garageId);
+					console.log('Successfully created new request');
+					await fetchAccessRequests();
+				} catch (createError: unknown) {
+					if (createError instanceof AxiosError) {
+						console.log('Error creating request:', {
+							status: createError.response?.status,
+							data: createError.response?.data,
+							message: createError.message,
+							garageId,
+						});
+					}
+					throw createError;
+				}
 			}
 			router.back();
 		} catch (err: unknown) {
-			if (err instanceof AxiosError) {
-				console.error('Error handling request:', {
-					error: err,
-					response: err.response?.data,
-					status: err.response?.status,
-				});
-			}
+			console.log('Error handling request:', {
+				message: err instanceof Error ? err.message : 'Unknown error',
+				error: err,
+			});
+			Alert.alert('Ошибка', 'Не удалось обработать запрос');
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -187,6 +212,32 @@ export default function RequestAccessScreen() {
 
 		// Если есть заявка текущего пользователя, показываем её статус
 		if (lastRequest) {
+			// Если последняя заявка - отвязка, показываем соответствующее сообщение
+			if (lastRequest.type === 'UNLINK') {
+				return (
+					<View style={styles.statusContainer}>
+						<View>
+							<Text style={[styles.statusText, { color: colors.error }]}>
+								Доступ отозван
+							</Text>
+						</View>
+						<TouchableOpacity
+							style={[
+								styles.requestButton,
+								{ backgroundColor: colors.primary },
+								isSubmitting && styles.buttonDisabled,
+							]}
+							onPress={() => handleRequestAccess(item.garageId)}
+							disabled={isSubmitting}
+						>
+							<Text style={styles.requestButtonText}>
+								{isSubmitting ? 'Отправка...' : 'Подать заявку'}
+							</Text>
+						</TouchableOpacity>
+					</View>
+				);
+			}
+
 			if (lastRequest.status === 'PENDING') {
 				return (
 					<View style={styles.statusContainer}>

@@ -1,13 +1,9 @@
 import { useState } from 'react';
-import { api } from '../../lib/api';
-
-interface UpdateSettingsDto {
-	ip: string;
-	port: number;
-}
+import { api } from '@/lib/api';
+import { UpdateSettingsDto } from '@/types/garage';
 
 export function useUpdateGarageSettings() {
-	const [isLoading, setIsLoading] = useState(false);
+	const [isUpdating, setIsUpdating] = useState(false);
 	const [error, setError] = useState<Error | null>(null);
 
 	const updateCameraSettings = async (
@@ -19,7 +15,7 @@ export function useUpdateGarageSettings() {
 			settings,
 		});
 
-		setIsLoading(true);
+		setIsUpdating(true);
 		setError(null);
 
 		try {
@@ -27,11 +23,14 @@ export function useUpdateGarageSettings() {
 				'Frontend: Sending request to:',
 				`/garages/${garageId}/camera`
 			);
+			console.log('Frontend: Request headers:', api.defaults.headers);
+			console.log('Frontend: Request body:', settings);
+
 			const response = await api.patch(`/garages/${garageId}/camera`, settings);
 			console.log('Frontend: Response received:', response.data);
 			return response.data;
 		} catch (err) {
-			console.error('Frontend: Error updating camera settings:', err);
+			console.warn('Frontend: Error updating camera settings:', err);
 			const error =
 				err instanceof Error
 					? err
@@ -39,44 +38,47 @@ export function useUpdateGarageSettings() {
 			setError(error);
 			throw error;
 		} finally {
-			setIsLoading(false);
+			setIsUpdating(false);
 		}
 	};
 
 	const updateGateSettings = async (
 		garageId: string,
-		settings: UpdateSettingsDto
+		settings: { ip: string; port: number }
 	) => {
 		console.log('Frontend: updateGateSettings called with:', {
 			garageId,
 			settings,
 		});
 
-		setIsLoading(true);
+		setIsUpdating(true);
 		setError(null);
 
 		try {
 			console.log('Frontend: Sending request to:', `/garages/${garageId}/gate`);
+			console.log('Frontend: Request headers:', api.defaults.headers);
+			console.log('Frontend: Request body:', settings);
+
 			const response = await api.patch(`/garages/${garageId}/gate`, settings);
 			console.log('Frontend: Response received:', response.data);
 			return response.data;
 		} catch (err) {
-			console.error('Frontend: Error updating gate settings:', err);
+			console.warn('Frontend: Error updating gate settings:', err);
 			const error =
 				err instanceof Error
 					? err
-					: new Error('Не удалось обновить настройки шлагбаума');
+					: new Error('Не удалось обновить настройки ворот');
 			setError(error);
 			throw error;
 		} finally {
-			setIsLoading(false);
+			setIsUpdating(false);
 		}
 	};
 
 	return {
 		updateCameraSettings,
 		updateGateSettings,
-		isLoading,
+		isUpdating,
 		error,
 	};
 }

@@ -29,31 +29,47 @@ export class GarageRequestService {
     garageId: string,
     description?: string,
   ): Promise<GarageRequestEntity> {
-    // Проверяем, нет ли уже активной заявки
-    const existingRequest = await this.requestRepository.findOne({
+    console.log('Creating request:', { userId, garageId, description });
+
+    // Получаем все заявки пользователя для этого гаража
+    const allRequests = await this.requestRepository.find({
       where: {
         user: { userId },
         garage: { garageId },
-        status: GarageRequestStatusEnum.PENDING,
+      },
+      order: {
+        createdAt: 'DESC',
       },
     });
 
-    if (existingRequest) {
+    console.log('All user requests for garage:', allRequests);
+
+    // Проверяем, нет ли уже активной заявки
+    const pendingRequest = allRequests.find(
+      (r) =>
+        r.status === GarageRequestStatusEnum.PENDING &&
+        r.type === GarageRequestTypeEnum.ACCESS,
+    );
+
+    console.log('Pending request:', pendingRequest);
+
+    if (pendingRequest) {
+      console.log('Found existing pending request, throwing error');
       throw new ForbiddenException(
         'You already have a pending request for this garage',
       );
     }
 
-    // Проверяем, не одобрена ли уже заявка для этого гаража
-    const approvedRequest = await this.requestRepository.findOne({
-      where: {
-        user: { userId },
-        garage: { garageId },
-        status: GarageRequestStatusEnum.APPROVED,
-      },
-    });
+    // Проверяем последнюю заявку
+    const lastRequest = allRequests[0];
+    console.log('Last request:', lastRequest);
 
-    if (approvedRequest) {
+    // Если последняя заявка - одобренный ACCESS, запрещаем создавать новую
+    if (
+      lastRequest?.type === GarageRequestTypeEnum.ACCESS &&
+      lastRequest.status === GarageRequestStatusEnum.APPROVED
+    ) {
+      console.log('Found existing approved ACCESS request, throwing error');
       throw new ForbiddenException('You already have access to this garage');
     }
 
@@ -62,7 +78,9 @@ export class GarageRequestService {
       garage: { garageId },
       description,
       status: GarageRequestStatusEnum.PENDING,
+      type: GarageRequestTypeEnum.ACCESS,
     });
+    console.log('Creating new request:', newRequest);
     return this.requestRepository.save(newRequest);
   }
 
@@ -104,7 +122,14 @@ export class GarageRequestService {
     requestId: string,
     status: GarageRequestStatusEnum,
   ): Promise<GarageRequestEntity> {
-    const request = await this.findOne(requestId);
+    const request = await this.requestRepository.findOne({
+      where: { requestId },
+      relations: ['user', 'garage', 'garage.admin'],
+    });
+
+    if (!request) {
+      throw new NotFoundException(`Заявка с ID ${requestId} не найдена`);
+    }
 
     if (request.garage.admin.userId !== adminId) {
       throw new ForbiddenException(
@@ -192,7 +217,16 @@ export class GarageRequestService {
       requestId,
       userId,
     });
-    const request = await this.findOne(requestId);
+
+    const request = await this.requestRepository.findOne({
+      where: { requestId },
+      relations: ['user', 'garage', 'garage.admin'],
+    });
+
+    if (!request) {
+      throw new NotFoundException(`Заявка с ID ${requestId} не найдена`);
+    }
+
     console.log('Found request:', {
       requestId: request.requestId,
       requestUserId: request.user.userId,

@@ -5,4 +5,5 @@ export interface ICar {
 	year: number;
 	color: string;
 	licensePlate: string;
+	vin: string;
 }

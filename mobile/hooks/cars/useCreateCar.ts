@@ -8,6 +8,7 @@ interface CreateCarDto {
 	licensePlate: string;
 	color: string;
 	year: number;
+	vin: string;
 }
 
 interface Car {
@@ -17,6 +18,7 @@ interface Car {
 	licensePlate: string;
 	color: string;
 	year: number;
+	vin: string;
 }
 
 export function useCreateCar() {

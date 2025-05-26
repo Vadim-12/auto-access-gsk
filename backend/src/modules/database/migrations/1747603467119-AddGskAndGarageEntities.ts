@@ -11,12 +11,13 @@ export class AddGskAndGarageEntities1747603467119
         "gsk_id" uuid NOT NULL DEFAULT uuid_generate_v4(),
         "name" character varying(100) NOT NULL,
         "address" character varying(255) NOT NULL,
+        "admin_id" uuid,
         CONSTRAINT "PK_gsk" PRIMARY KEY ("gsk_id")
       )`,
     );
 
     await queryRunner.query(
-      `CREATE TABLE "garage" (
+      `CREATE TABLE "garages" (
         "garage_id" uuid NOT NULL DEFAULT uuid_generate_v4(),
         "number" character varying(20) NOT NULL,
         "camera_ip" character varying(15),
@@ -34,29 +35,40 @@ export class AddGskAndGarageEntities1747603467119
     await queryRunner.query(
       `COMMENT ON COLUMN "gsk"."address" IS 'GSK address'`,
     );
+    await queryRunner.query(
+      `COMMENT ON COLUMN "gsk"."admin_id" IS 'Admin user UUID'`,
+    );
 
     await queryRunner.query(
-      `COMMENT ON COLUMN "garage"."garage_id" IS 'Garage UUID'`,
+      `COMMENT ON COLUMN "garages"."garage_id" IS 'Garage UUID'`,
     );
     await queryRunner.query(
-      `COMMENT ON COLUMN "garage"."number" IS 'Garage number'`,
+      `COMMENT ON COLUMN "garages"."number" IS 'Garage number'`,
     );
     await queryRunner.query(
-      `COMMENT ON COLUMN "garage"."camera_ip" IS 'Camera IP address'`,
+      `COMMENT ON COLUMN "garages"."camera_ip" IS 'Camera IP address'`,
     );
     await queryRunner.query(
-      `COMMENT ON COLUMN "garage"."camera_port" IS 'Camera port'`,
+      `COMMENT ON COLUMN "garages"."camera_port" IS 'Camera port'`,
     );
     await queryRunner.query(
-      `COMMENT ON COLUMN "garage"."gate_ip" IS 'Gate IP address'`,
+      `COMMENT ON COLUMN "garages"."gate_ip" IS 'Gate IP address'`,
     );
     await queryRunner.query(
-      `COMMENT ON COLUMN "garage"."gate_port" IS 'Gate port'`,
+      `COMMENT ON COLUMN "garages"."gate_port" IS 'Gate port'`,
     );
+
+    await queryRunner.query(`
+      ALTER TABLE "gsk" 
+      ADD CONSTRAINT "FK_gsk_admin" 
+      FOREIGN KEY ("admin_id") 
+      REFERENCES "users"("user_id") 
+      ON DELETE SET NULL
+    `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TABLE "garage"`);
+    await queryRunner.query(`DROP TABLE "garages"`);
     await queryRunner.query(`DROP TABLE "gsk"`);
   }
 }

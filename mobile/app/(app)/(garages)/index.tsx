@@ -49,7 +49,8 @@ export default function GaragesScreen() {
 							await deleteGarage(garageId);
 							fetchGarages();
 						} catch (err) {
-							console.error('Error deleting garage:', err);
+							console.log('Error deleting garage:', err);
+							Alert.alert('Ошибка', 'Не удалось удалить гараж');
 						}
 					},
 				},
@@ -122,24 +123,24 @@ export default function GaragesScreen() {
 										{item.description}
 									</Text>
 								)}
-								{item.admin && (
-									<View style={styles.adminInfo}>
-										<Text
-											style={[
-												styles.adminText,
-												{ color: colors.textSecondary },
-											]}
-										>
-											IP шлагбаума: {item.gateIp}
-										</Text>
-										<Text
-											style={[
-												styles.adminText,
-												{ color: colors.textSecondary },
-											]}
-										>
-											Порт шлагбаума: {item.gatePort}
-										</Text>
+								<View style={styles.adminInfo}>
+									<Text
+										style={[styles.adminText, { color: colors.textSecondary }]}
+									>
+										Шлагбаум:{' '}
+										{item.gate?.ip
+											? `${item.gate.ip}:${String(item.gate.port)}`
+											: 'Не настроен'}
+									</Text>
+									<Text
+										style={[styles.adminText, { color: colors.textSecondary }]}
+									>
+										Камера:{' '}
+										{item.camera?.ip
+											? `${item.camera.ip}:${String(item.camera.streamPort)}`
+											: 'Не настроена'}
+									</Text>
+									{item.admin && (
 										<Text
 											style={[
 												styles.adminText,
@@ -148,8 +149,8 @@ export default function GaragesScreen() {
 										>
 											Администратор: {item.admin.phoneNumber}
 										</Text>
-									</View>
-								)}
+									)}
+								</View>
 								<TouchableOpacity
 									style={[
 										styles.deleteButton,
@@ -158,7 +159,7 @@ export default function GaragesScreen() {
 									]}
 									onPress={(e) => {
 										e.stopPropagation();
-										handleDelete(item.garageId, item.number);
+										handleDelete(item.garageId, String(item.number));
 									}}
 									disabled={isDeleting}
 								>

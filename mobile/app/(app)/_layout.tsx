@@ -64,6 +64,16 @@ export default function AppLayout() {
 				}}
 			/>
 			<Tabs.Screen
+				name='(settings)'
+				options={{
+					headerShown: false,
+					title: 'Настройки',
+					tabBarIcon: ({ color }: { color: string }) => (
+						<FontAwesome name='cog' size={24} color={color} />
+					),
+				}}
+			/>
+			<Tabs.Screen
 				name='profile'
 				options={{
 					title: 'Профиль',

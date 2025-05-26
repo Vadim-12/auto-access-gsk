@@ -1,50 +1,109 @@
-# Welcome to your Expo app 👋
+# Auto Access GSK - Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Мобильное приложение для управления доступом к гаражам.
 
-## Get started
+## Технологии
 
-1. Install dependencies
+- React Native
+- Expo
+- TypeScript
+- React Navigation
+- Axios
 
-   ```bash
-   npm install
-   ```
+## Основные экраны
 
-2. Start the app
+### 1. Авторизация
 
-   ```bash
-   npx expo start
-   ```
+- Вход в систему
+- Регистрация нового пользователя
 
-In the output, you'll find options to open the app in a
+### 2. Список гаражей
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- Отображение доступных гаражей
+- Статус доступа
+- Быстрый доступ к настройкам
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### 3. Детали гаража
 
-## Get a fresh project
+- Информация о гараже
+- Настройки камеры
+- Управление пользователями
+- Журнал доступа
 
-When you're ready, run:
+### 4. Журнал доступа
+
+- История попыток доступа
+- Статус доступа (разрешен/запрещен)
+- Детали обнаруженных автомобилей
+
+## Установка и запуск
+
+1. Установка зависимостей:
 
 ```bash
-npm run reset-project
+yarn install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. Запуск приложения:
 
-## Learn more
+```bash
+yarn start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+3. Для iOS:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+yarn ios
+```
 
-## Join the community
+4. Для Android:
 
-Join our community of developers creating universal apps.
+```bash
+yarn android
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Функциональность
+
+### Управление гаражами
+
+- Просмотр списка доступных гаражей
+- Добавление новых гаражей
+- Настройка параметров гаража
+
+### Мониторинг доступа
+
+- Просмотр журнала доступа в реальном времени
+- Детальная информация о каждой попытке доступа
+- Статистика доступа
+
+### Управление автомобилями
+
+- Добавление автомобилей
+- Привязка автомобилей к пользователям
+- Редактирование информации об автомобилях
+
+## Интерфейс
+
+### Журнал доступа
+
+- Временная шкала попыток доступа
+- Цветовая индикация статуса (зеленый - разрешен, красный - запрещен)
+- Детальная информация о каждом событии:
+  - Время
+  - Номер автомобиля
+  - Цвет автомобиля
+  - Решение системы
+  - Описание от AI
+
+### Навигация
+
+- Нижняя панель навигации
+- Быстрый доступ к основным функциям
+- Контекстное меню для каждой записи
+
+## Безопасность
+
+- JWT аутентификация
+- Защищенное хранение токенов
+- Проверка прав доступа
+- Безопасное API взаимодействие

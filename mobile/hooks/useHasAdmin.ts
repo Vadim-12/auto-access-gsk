@@ -13,7 +13,7 @@ export const useHasAdmin = () => {
 				const response = await axios.get(`${API_HTTP_URL}/users/has-admin`);
 				setHasAdmin(response.data.hasAdmin);
 			} catch (err) {
-				console.error('Error checking admin:', err);
+				console.log('Error checking admin:', err);
 				setError('Не удалось проверить наличие администратора');
 			} finally {
 				setIsLoading(false);

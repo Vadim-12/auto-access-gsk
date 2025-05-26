@@ -1,16 +1,31 @@
+import {
+  Entity,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+  PrimaryColumn,
+  JoinColumn,
+} from 'typeorm';
 import { UserEntity } from '../../user/entities/user.entity';
-import { Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 
-@Entity({ name: 'refresh_token' })
+@Entity({
+  name: 'refresh_tokens',
+})
 export class RefreshTokenEntity {
   @PrimaryColumn('varchar', {
     comment: 'Refresh token',
-    nullable: false,
     length: 255,
+    name: 'refresh_token',
   })
   refreshToken: string;
 
-  @ManyToOne(() => UserEntity, (user) => user.refreshTokens)
+  @ManyToOne(() => UserEntity)
   @JoinColumn({ name: 'user_id' })
   user: UserEntity;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
 }

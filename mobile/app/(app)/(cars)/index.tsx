@@ -41,7 +41,8 @@ export default function CarsScreen() {
 							await deleteCar(carId);
 							fetchCars();
 						} catch (err) {
-							console.error('Error deleting car:', err);
+							console.log('Error deleting car:', err);
+							Alert.alert('Ошибка', 'Не удалось удалить автомобиль');
 						}
 					},
 				},

@@ -13,6 +13,7 @@ import { useMemo, useState } from 'react';
 import { SIGN_IN_ERROR } from '@/constants/errors';
 import { authStyles } from '@/styles/auth';
 import { useHasAdmin } from '@/hooks/useHasAdmin';
+import { AxiosError } from 'axios';
 
 export default function SignInScreen() {
 	const { signIn } = useAuth();
@@ -52,7 +53,11 @@ export default function SignInScreen() {
 			setErrorMessage('');
 			router.replace('/(app)/(garages)');
 		} catch (error) {
-			setApiError((error as Error).message);
+			const errorMessage = (error as AxiosError)?.response?.data as {
+				message: string;
+			};
+			console.log('Ошибка при авторизации:', errorMessage.message);
+			setApiError(errorMessage.message);
 		} finally {
 			setIsLoading(false);
 		}
@@ -64,7 +69,15 @@ export default function SignInScreen() {
 
 	return (
 		<View
-			style={[authStyles.container, { backgroundColor: colors.background }]}
+			style={[
+				authStyles.container,
+				{
+					backgroundColor: colors.background,
+					justifyContent: 'center',
+					alignItems: 'center',
+					flex: 1,
+				},
+			]}
 		>
 			<Text style={[authStyles.title, { color: colors.text }]}>
 				Авторизация
@@ -78,54 +91,58 @@ export default function SignInScreen() {
 				</Text>
 			)}
 
-			<Text style={[styles.label, { color: colors.text }]}>
-				Номер телефона *
-			</Text>
-			{errorMessage === SIGN_IN_ERROR.NOT_VALID_PHONE_NUMBER_LENGTH && (
-				<Text style={{ color: colors.error }}>{errorMessage}</Text>
-			)}
-			<TextInput
-				style={[
-					authStyles.input,
-					{
-						borderColor:
-							errorMessage === SIGN_IN_ERROR.NOT_VALID_PHONE_NUMBER_LENGTH
-								? 'red'
-								: colors.border,
-						backgroundColor: colors.inputBackground,
-						color: colors.text,
-					},
-				]}
-				placeholderTextColor={colors.text + '70'}
-				placeholder='89999999999'
-				keyboardType='phone-pad'
-				autoCapitalize='none'
-				value={phoneNumber}
-				onChangeText={(newValue) => setPhoneNumber(newValue)}
-			/>
+			<View style={{ width: '100%' }}>
+				<Text style={[styles.label, { color: colors.text }]}>
+					Номер телефона *
+				</Text>
+				{errorMessage === SIGN_IN_ERROR.NOT_VALID_PHONE_NUMBER_LENGTH && (
+					<Text style={{ color: colors.error }}>{errorMessage}</Text>
+				)}
+				<TextInput
+					style={[
+						authStyles.input,
+						{
+							borderColor:
+								errorMessage === SIGN_IN_ERROR.NOT_VALID_PHONE_NUMBER_LENGTH
+									? 'red'
+									: colors.border,
+							backgroundColor: colors.inputBackground,
+							color: colors.text,
+						},
+					]}
+					placeholderTextColor={colors.text + '70'}
+					placeholder='89999999999'
+					keyboardType='phone-pad'
+					autoCapitalize='none'
+					value={phoneNumber}
+					onChangeText={(newValue) => setPhoneNumber(newValue)}
+				/>
+			</View>
 
-			<Text style={[styles.label, { color: colors.text }]}>Пароль *</Text>
-			{errorMessage === SIGN_IN_ERROR.EMPTY_PASSWORD && (
-				<Text style={{ color: colors.error }}>{errorMessage}</Text>
-			)}
-			<TextInput
-				style={[
-					authStyles.input,
-					{
-						borderColor:
-							errorMessage === SIGN_IN_ERROR.EMPTY_PASSWORD
-								? 'red'
-								: colors.border,
-						backgroundColor: colors.inputBackground,
-						color: colors.text,
-					},
-				]}
-				placeholderTextColor={colors.text + '70'}
-				placeholder='Введите пароль'
-				secureTextEntry
-				value={password}
-				onChangeText={(newValue) => setPassword(newValue)}
-			/>
+			<View style={{ width: '100%' }}>
+				<Text style={[styles.label, { color: colors.text }]}>Пароль *</Text>
+				{errorMessage === SIGN_IN_ERROR.EMPTY_PASSWORD && (
+					<Text style={{ color: colors.error }}>{errorMessage}</Text>
+				)}
+				<TextInput
+					style={[
+						authStyles.input,
+						{
+							borderColor:
+								errorMessage === SIGN_IN_ERROR.EMPTY_PASSWORD
+									? 'red'
+									: colors.border,
+							backgroundColor: colors.inputBackground,
+							color: colors.text,
+						},
+					]}
+					placeholderTextColor={colors.text + '70'}
+					placeholder='Введите пароль'
+					secureTextEntry
+					value={password}
+					onChangeText={(newValue) => setPassword(newValue)}
+				/>
+			</View>
 
 			<TouchableOpacity
 				style={[

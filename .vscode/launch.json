@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "/Users/vadimagarkov/Desktop/auto-access-gsk/backend/src",
+      "program": "/Users/vadimagarkov/Desktop/auto-access-gsk/backend/src/build/Debug/outDebug"
+    }
+  ]
+}

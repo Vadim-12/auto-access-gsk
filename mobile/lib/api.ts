@@ -22,10 +22,16 @@ api.interceptors.request.use(async (config) => {
 	});
 
 	const accessToken = await AsyncStorage.getItem('access_token');
-	console.log('Access Token:', accessToken);
+	console.log(
+		'Access Token:',
+		accessToken ? `${accessToken.substring(0, 10)}...` : 'not found'
+	);
 
 	if (accessToken && config.headers) {
 		config.headers.Authorization = `Bearer ${accessToken}`;
+		console.log('Added Authorization header:', config.headers.Authorization);
+	} else {
+		console.log('No Authorization header added - missing token');
 	}
 	return config;
 });
@@ -41,14 +47,20 @@ api.interceptors.response.use(
 		return response;
 	},
 	async (error: AxiosError) => {
-		console.error('API Error:', {
+		console.warn('API Error:', {
 			status: error.response?.status,
 			headers: error.response?.headers,
 			data: error.response?.data,
 			message: error.message,
+			config: {
+				url: error.config?.url,
+				method: error.config?.method,
+				headers: error.config?.headers,
+			},
 		});
 
 		if (error.response?.status === 401) {
+			console.log('Unauthorized error - redirecting to sign in');
 			// Если токен истек или недействителен, перенаправляем на страницу входа
 			await AsyncStorage.removeItem('access_token');
 			router.replace('/(auth)/sign-in');

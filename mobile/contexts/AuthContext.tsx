@@ -16,14 +16,14 @@ interface User {
 interface AuthContextType {
 	user: User | null;
 	isLoading: boolean;
-	signIn: (phoneNumber: string, password: string) => Promise<void>;
+	signIn: (phoneNumber: string, password: string) => Promise<User>;
 	signUp: (
 		phoneNumber: string,
 		password: string,
 		firstName: string,
 		lastName: string,
 		middleName?: string
-	) => Promise<void>;
+	) => Promise<User>;
 	logout: () => Promise<void>;
 	refreshTokens: () => Promise<void>;
 }
@@ -85,6 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 		await AsyncStorage.setItem('access_token', data.tokens.access);
 		await SecureStore.setItemAsync('refresh_token', data.tokens.refresh);
 		setUser(data.user);
+		return data.user;
 	};
 
 	const signUp = async (
@@ -101,9 +102,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 			lastName,
 			middleName
 		);
+		console.log('data signUp', data);
 		await AsyncStorage.setItem('access_token', data.tokens.access);
 		await SecureStore.setItemAsync('refresh_token', data.tokens.refresh);
 		setUser(data.user);
+		return data.user;
 	};
 
 	const logout = async () => {

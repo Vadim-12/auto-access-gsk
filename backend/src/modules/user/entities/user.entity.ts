@@ -13,7 +13,7 @@ import { CarEntity } from '../../car/entities/car.entity';
 import { GarageRequestEntity } from '../../garage-request/entities/garage-request.entity';
 
 @Entity({
-  name: 'user',
+  name: 'users',
 })
 export class UserEntity {
   @PrimaryGeneratedColumn('uuid', {
@@ -34,6 +34,7 @@ export class UserEntity {
     comment: 'User password hash',
     nullable: false,
     length: 100,
+    name: 'password_hash',
   })
   passwordHash: string;
 
@@ -41,6 +42,7 @@ export class UserEntity {
     comment: 'User first name',
     nullable: false,
     length: 50,
+    name: 'first_name',
   })
   firstName: string;
 
@@ -48,20 +50,23 @@ export class UserEntity {
     comment: 'User last name',
     nullable: false,
     length: 50,
+    name: 'last_name',
   })
   lastName: string;
 
   @Column('varchar', {
     comment: 'User phone number',
-    nullable: true,
+    nullable: false,
     length: 20,
+    name: 'phone_number',
   })
-  phoneNumber?: string;
+  phoneNumber: string;
 
   @Column('varchar', {
     comment: 'User middle name',
     nullable: true,
     length: 50,
+    name: 'middle_name',
   })
   middleName?: string;
 
@@ -70,7 +75,7 @@ export class UserEntity {
 
   @ManyToMany(() => GarageEntity, (garage) => garage.users)
   @JoinTable({
-    name: 'user_garage',
+    name: 'user_garages',
     joinColumn: {
       name: 'user_id',
       referencedColumnName: 'userId',

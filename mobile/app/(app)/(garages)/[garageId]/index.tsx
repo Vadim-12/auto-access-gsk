@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
 	View,
 	Text,
@@ -16,6 +16,8 @@ import { useRemoveUserFromGarage } from '@/hooks/garages/useRemoveUserFromGarage
 import { useAuth } from '@/contexts/AuthContext';
 import { UserRoleEnum } from '@/constants/user-role';
 import CameraView from '@/components/CameraView';
+import { useToggleGate } from '@/hooks/garages/useToggleGate';
+import { GarageGateStatusEnum } from '@/constants/statuses';
 
 export default function GarageDetailsScreen() {
 	const { garageId } = useLocalSearchParams();
@@ -24,9 +26,12 @@ export default function GarageDetailsScreen() {
 	const { garages, fetchGarages } = useGarages();
 	const { user } = useAuth();
 	const { removeUser, isLoading: isRemoving } = useRemoveUserFromGarage();
+	const { toggleGate, isLoading: isToggling } = useToggleGate();
 
 	const garage = garages.find((g) => g.garageId === garageId);
 	const isAdmin = user?.role === UserRoleEnum.ADMIN;
+
+	console.log('Полная информация о гараже:', JSON.stringify(garage, null, 2));
 
 	if (!garage) {
 		return (
@@ -54,7 +59,8 @@ export default function GarageDetailsScreen() {
 							await fetchGarages();
 							router.back();
 						} catch (err) {
-							console.error('Error deleting garage:', err);
+							console.log('Error deleting garage:', err);
+							Alert.alert('Ошибка', 'Не удалось удалить гараж');
 						}
 					},
 				},
@@ -80,115 +86,14 @@ export default function GarageDetailsScreen() {
 							await fetchGarages();
 							router.replace('/(app)/(garages)');
 						} catch (err) {
-							console.error('Error removing user:', err);
+							console.log('Error removing user:', err);
+							Alert.alert('Ошибка', 'Не удалось удалить пользователя');
 						}
 					},
 				},
 			]
 		);
 	};
-
-	const renderInfoSection = () => (
-		<View style={[styles.section, { backgroundColor: colors.cardBackground }]}>
-			<Text style={[styles.sectionTitle, { color: colors.text }]}>
-				Информация
-			</Text>
-
-			<View style={styles.infoRow}>
-				<Text style={[styles.label, { color: colors.textSecondary }]}>
-					Номер гаража
-				</Text>
-				<Text style={[styles.value, { color: colors.text }]}>
-					№{garage.number}
-				</Text>
-			</View>
-
-			{garage.description && (
-				<View style={styles.infoRow}>
-					<Text style={[styles.label, { color: colors.textSecondary }]}>
-						Описание
-					</Text>
-					<Text style={[styles.value, { color: colors.text }]}>
-						{garage.description}
-					</Text>
-				</View>
-			)}
-
-			<View style={styles.infoRow}>
-				<Text style={[styles.label, { color: colors.textSecondary }]}>
-					Шлагбаум
-				</Text>
-				<Text style={[styles.value, { color: colors.text }]}>
-					{garage.gateIp}:{garage.gatePort}
-				</Text>
-			</View>
-
-			<View style={styles.infoRow}>
-				<Text style={[styles.label, { color: colors.textSecondary }]}>
-					Камера
-				</Text>
-				<Text style={[styles.value, { color: colors.text }]}>
-					{garage.camera
-						? `${garage.camera.ip}:${garage.camera.port}`
-						: 'Не настроена'}
-				</Text>
-			</View>
-
-			<View style={styles.infoRow}>
-				<Text style={[styles.label, { color: colors.textSecondary }]}>
-					Дата создания
-				</Text>
-				<Text style={[styles.value, { color: colors.text }]}>
-					{new Date(garage.createdAt).toLocaleDateString()}
-				</Text>
-			</View>
-
-			{garage.admin && (
-				<View style={styles.infoRow}>
-					<Text style={[styles.label, { color: colors.textSecondary }]}>
-						Администратор
-					</Text>
-					<View style={styles.valueContainer}>
-						<Text style={[styles.value, { color: colors.text }]}>
-							{garage.admin.firstName} {garage.admin.lastName}
-						</Text>
-						<Text style={[styles.value, { color: colors.textSecondary }]}>
-							{garage.admin.phoneNumber}
-						</Text>
-					</View>
-				</View>
-			)}
-
-			{garage.users && garage.users.length > 0 ? (
-				<View style={styles.infoRow}>
-					<Text style={[styles.label, { color: colors.textSecondary }]}>
-						Владельцы
-					</Text>
-					<View style={styles.valueContainer}>
-						{garage.users.map((user, index) => (
-							<View key={user.userId} style={index > 0 && styles.userSpacing}>
-								<Text style={[styles.value, { color: colors.text }]}>
-									{user.firstName} {user.lastName}
-								</Text>
-								<Text style={[styles.value, { color: colors.textSecondary }]}>
-									{user.phoneNumber}
-								</Text>
-							</View>
-						))}
-					</View>
-				</View>
-			) : (
-				<View style={styles.infoRow}>
-					<Text style={[styles.label, { color: colors.textSecondary }]}>
-						Владельцы
-					</Text>
-					<Text style={[styles.value, { color: colors.textSecondary }]}>
-						Не назначены
-					</Text>
-				</View>
-			)}
-		</View>
-	);
 
 	const renderCameraSection = () => (
 		<View style={[styles.section, { backgroundColor: colors.cardBackground }]}>
@@ -197,7 +102,7 @@ export default function GarageDetailsScreen() {
 				<View style={styles.cameraWrapper}>
 					<CameraView
 						cameraIp={garage.camera.ip}
-						cameraPort={garage.camera.port}
+						cameraPort={garage.camera.streamPort}
 					/>
 				</View>
 			) : (
@@ -218,16 +123,28 @@ export default function GarageDetailsScreen() {
 			{garage.users && garage.users.length > 0 ? (
 				<View>
 					{garage.users.map((user) => (
-						<View key={user.userId} style={styles.userItem}>
-							<Text style={[styles.userName, { color: colors.text }]}>
-								{user.firstName} {user.lastName}
-							</Text>
+						<View
+							key={user.userId}
+							style={[
+								styles.userCard,
+								{ backgroundColor: colors.cardBackground },
+							]}
+						>
+							<View style={styles.userInfo}>
+								<Text style={[styles.userName, { color: colors.text }]}>
+									{user.firstName} {user.lastName}
+								</Text>
+								<Text
+									style={[styles.userPhone, { color: colors.textSecondary }]}
+								>
+									{user.phoneNumber}
+								</Text>
+							</View>
 							{isAdmin && (
 								<TouchableOpacity
 									style={[
 										styles.removeButton,
 										{ backgroundColor: colors.error },
-										isRemoving && styles.buttonDisabled,
 									]}
 									onPress={() => handleRemoveUser(user.userId)}
 									disabled={isRemoving}
@@ -246,146 +163,304 @@ export default function GarageDetailsScreen() {
 		</View>
 	);
 
-	const renderButtonsSection = () => (
-		<View style={styles.buttonsContainer}>
-			{isAdmin && (
-				<TouchableOpacity
-					style={[styles.editButton, { backgroundColor: colors.primary }]}
-					onPress={() => router.push(`/(app)/(garages)/${garageId}/edit`)}
-				>
-					<Text style={styles.editButtonText}>Изменить настройки</Text>
-				</TouchableOpacity>
-			)}
-
-			<TouchableOpacity
-				style={[
-					styles.deleteButton,
-					{ backgroundColor: colors.error },
-					isDeleting && styles.buttonDisabled,
-				]}
-				onPress={handleDelete}
-				disabled={isDeleting}
+	const renderButtonsSection = () => {
+		console.log('Gate info:', garage.gate);
+		return (
+			<View
+				style={[styles.section, { backgroundColor: colors.cardBackground }]}
 			>
-				<Text style={styles.deleteButtonText}>
-					{isDeleting ? 'Удаление...' : 'Удалить гараж'}
-				</Text>
-			</TouchableOpacity>
-
-			{garage.users && garage.users.length > 0 && isAdmin && (
-				<TouchableOpacity
-					style={[
-						styles.removeButton,
-						{ backgroundColor: colors.error },
-						isRemoving && styles.buttonDisabled,
-					]}
-					onPress={() => handleRemoveUser(garage.users[0].userId)}
-					disabled={isRemoving}
-				>
-					<Text style={styles.removeButtonText}>
-						{isRemoving ? 'Отвязка...' : 'Отвязать пользователя'}
+				{garage.gate ? (
+					<>
+						<TouchableOpacity
+							style={[styles.button, { backgroundColor: colors.primary }]}
+							onPress={async () => {
+								try {
+									await toggleGate(garageId as string);
+									await fetchGarages();
+								} catch (err) {
+									console.log('Error toggling gate:', err);
+									Alert.alert('Ошибка', 'Не удалось управлять шлагбаумом');
+								}
+							}}
+							disabled={isToggling}
+						>
+							<Text style={styles.buttonText}>
+								{isToggling
+									? 'Изменение статуса...'
+									: garage.gate.status === GarageGateStatusEnum.OPENED
+									? 'Закрыть ворота'
+									: 'Открыть ворота'}
+							</Text>
+						</TouchableOpacity>
+						<TouchableOpacity
+							style={[styles.button, { backgroundColor: colors.warning }]}
+							onPress={() => {
+								router.push(`/(app)/(garages)/${garageId}/edit`);
+							}}
+						>
+							<Text style={styles.buttonText}>Изменить настройки</Text>
+						</TouchableOpacity>
+						<TouchableOpacity
+							style={[styles.button, { backgroundColor: colors.success }]}
+							onPress={() =>
+								router.push(`/(app)/(garages)/${garageId}/access-logs`)
+							}
+						>
+							<Text style={styles.buttonText}>Журнал доступа</Text>
+						</TouchableOpacity>
+					</>
+				) : (
+					<Text style={[styles.noGateText, { color: colors.textSecondary }]}>
+						Ворота не настроены
 					</Text>
-				</TouchableOpacity>
-			)}
-		</View>
-	);
-
-	const sections = [
-		{ id: 'info', render: renderInfoSection },
-		{ id: 'camera', render: renderCameraSection },
-		{ id: 'users', render: renderUsersSection },
-		{ id: 'buttons', render: renderButtonsSection },
-	];
+				)}
+				{isAdmin && (
+					<TouchableOpacity
+						style={[styles.deleteButton, { backgroundColor: colors.error }]}
+						onPress={handleDelete}
+						disabled={isDeleting}
+					>
+						<Text style={styles.deleteButtonText}>
+							{isDeleting ? 'Удаление...' : 'Удалить гараж'}
+						</Text>
+					</TouchableOpacity>
+				)}
+			</View>
+		);
+	};
 
 	return (
-		<View style={[styles.container, { backgroundColor: colors.background }]}>
-			<ScrollView
-				style={styles.scrollView}
-				contentContainerStyle={styles.scrollViewContent}
-				showsVerticalScrollIndicator={true}
-				bounces={true}
-				scrollEnabled={true}
-				alwaysBounceVertical={true}
-				scrollEventThrottle={16}
+		<ScrollView
+			style={[styles.container, { backgroundColor: colors.background }]}
+		>
+			<View
+				style={[styles.section, { backgroundColor: colors.cardBackground }]}
 			>
-				{sections.map((section) => (
-					<View key={section.id}>{section.render()}</View>
-				))}
-			</ScrollView>
-		</View>
+				<Text style={[styles.sectionTitle, { color: colors.text }]}>
+					Информация
+				</Text>
+
+				<View style={styles.infoRow}>
+					<Text style={[styles.label, { color: colors.textSecondary }]}>
+						Наименование
+					</Text>
+					<Text style={[styles.value, { color: colors.text }]}>
+						{garage.number}
+					</Text>
+				</View>
+
+				{garage.description && (
+					<View style={styles.infoRow}>
+						<Text style={[styles.label, { color: colors.textSecondary }]}>
+							Описание
+						</Text>
+						<Text style={[styles.value, { color: colors.text }]}>
+							{garage.description}
+						</Text>
+					</View>
+				)}
+
+				{garage.gate && (
+					<>
+						<View style={styles.infoRow}>
+							<Text style={[styles.label, { color: colors.textSecondary }]}>
+								Шлагбаум
+							</Text>
+							<Text style={[styles.value, { color: colors.text }]}>
+								{garage.gate.ip}:{garage.gate.port}
+							</Text>
+						</View>
+
+						<View style={styles.infoRow}>
+							<Text style={[styles.label, { color: colors.textSecondary }]}>
+								Статус ворот
+							</Text>
+							<Text
+								style={[
+									styles.value,
+									{
+										color:
+											garage.gate.status === GarageGateStatusEnum.OPENED
+												? colors.success || 'green'
+												: colors.error || 'red',
+									},
+								]}
+							>
+								{garage.gate.status === GarageGateStatusEnum.OPENED
+									? 'Открыты'
+									: 'Закрыты'}
+							</Text>
+						</View>
+					</>
+				)}
+
+				<View style={styles.infoRow}>
+					<Text style={[styles.label, { color: colors.textSecondary }]}>
+						Камера
+					</Text>
+					<Text style={[styles.value, { color: colors.text }]}>
+						{garage.camera ? (
+							`${garage.camera.ip}:${garage.camera.streamPort}`
+						) : (
+							<Text style={{ color: 'lightgray' }}>Не настроена</Text>
+						)}
+					</Text>
+				</View>
+
+				<View style={styles.infoRow}>
+					<Text style={[styles.label, { color: colors.textSecondary }]}>
+						Дата создания
+					</Text>
+					<Text style={[styles.value, { color: colors.text }]}>
+						{new Date(garage.createdAt).toLocaleDateString()}
+					</Text>
+				</View>
+
+				{garage.admin && (
+					<View style={styles.infoRow}>
+						<Text style={[styles.label, { color: colors.textSecondary }]}>
+							Администратор
+						</Text>
+						<View style={styles.valueContainer}>
+							<Text style={[styles.value, { color: colors.text }]}>
+								{garage.admin.firstName} {garage.admin.lastName}
+							</Text>
+							<Text style={[styles.value, { color: colors.textSecondary }]}>
+								{garage.admin.phoneNumber}
+							</Text>
+						</View>
+					</View>
+				)}
+
+				{garage.users && garage.users.length > 0 ? (
+					<View style={styles.infoRow}>
+						<Text style={[styles.label, { color: colors.textSecondary }]}>
+							Владельцы
+						</Text>
+						<View style={styles.valueContainer}>
+							{garage.users.map((user, index) => (
+								<View key={user.userId} style={index > 0 && styles.userSpacing}>
+									<Text style={[styles.value, { color: colors.text }]}>
+										{user.firstName} {user.lastName}
+									</Text>
+									<Text style={[styles.value, { color: colors.textSecondary }]}>
+										{user.phoneNumber}
+									</Text>
+								</View>
+							))}
+						</View>
+					</View>
+				) : (
+					<View style={styles.infoRow}>
+						<Text style={[styles.label, { color: colors.textSecondary }]}>
+							Владельцы
+						</Text>
+						<Text style={[styles.value, { color: colors.textSecondary }]}>
+							Не назначены
+						</Text>
+					</View>
+				)}
+			</View>
+			{renderCameraSection()}
+			{renderUsersSection()}
+			{(() => {
+				console.log('Rendering buttons section');
+				return renderButtonsSection();
+			})()}
+		</ScrollView>
 	);
 }
 
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-	},
-	scrollView: {
-		flex: 1,
-		width: '100%',
-	},
-	scrollViewContent: {
 		padding: 16,
-		paddingBottom: 32,
-		flexGrow: 1,
+	},
+	loadingContainer: {
+		justifyContent: 'center',
+		alignItems: 'center',
 	},
 	section: {
-		borderRadius: 12,
 		padding: 16,
-		marginBottom: 20,
-		width: '100%',
+		borderRadius: 8,
+		marginBottom: 16,
 	},
 	sectionTitle: {
 		fontSize: 18,
 		fontWeight: '600',
-		marginBottom: 12,
+		marginBottom: 16,
 	},
 	infoRow: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
-		paddingVertical: 12,
-		borderBottomWidth: 1,
-		borderBottomColor: '#DDDDDD',
+		alignItems: 'center',
+		marginBottom: 12,
 	},
 	label: {
-		fontSize: 14,
-		flex: 0.4,
-	},
-	valueContainer: {
-		flex: 0.6,
-		alignItems: 'flex-end',
+		fontSize: 16,
 	},
 	value: {
-		fontSize: 14,
-		fontWeight: '600',
-		textAlign: 'right',
+		fontSize: 16,
+		fontWeight: '500',
+	},
+	valueContainer: {
+		alignItems: 'flex-end',
+	},
+	userSpacing: {
+		marginTop: 8,
 	},
 	cameraWrapper: {
 		width: '100%',
-		aspectRatio: 16 / 9,
+		height: 200,
 		borderRadius: 8,
 		overflow: 'hidden',
 	},
 	noCameraContainer: {
-		width: '100%',
-		aspectRatio: 16 / 9,
-		borderRadius: 8,
-		backgroundColor: '#f5f5f5',
-		justifyContent: 'center',
+		padding: 16,
 		alignItems: 'center',
 	},
 	noCameraText: {
 		fontSize: 16,
 	},
-	buttonsContainer: {
-		marginTop: 20,
+	userCard: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		padding: 16,
+		borderRadius: 8,
+		marginBottom: 8,
 	},
-	editButton: {
+	userInfo: {
+		flex: 1,
+	},
+	userName: {
+		fontSize: 16,
+		fontWeight: '500',
+		marginBottom: 4,
+	},
+	userPhone: {
+		fontSize: 14,
+	},
+	removeButton: {
+		paddingHorizontal: 16,
+		paddingVertical: 8,
+		borderRadius: 4,
+	},
+	removeButtonText: {
+		color: '#fff',
+		fontWeight: '600',
+	},
+	noUsersText: {
+		fontSize: 16,
+		textAlign: 'center',
+	},
+	button: {
 		padding: 16,
 		borderRadius: 8,
 		alignItems: 'center',
-		marginBottom: 20,
+		marginBottom: 16,
 	},
-	editButtonText: {
+	buttonText: {
 		color: '#fff',
 		fontSize: 16,
 		fontWeight: '600',
@@ -394,47 +469,14 @@ const styles = StyleSheet.create({
 		padding: 16,
 		borderRadius: 8,
 		alignItems: 'center',
-		marginBottom: 20,
-	},
-	buttonDisabled: {
-		opacity: 0.5,
 	},
 	deleteButtonText: {
 		color: '#fff',
-		fontSize: 16,
 		fontWeight: '600',
-	},
-	removeButton: {
-		marginTop: 12,
-		padding: 12,
-		borderRadius: 8,
-		alignItems: 'center',
-	},
-	removeButtonText: {
-		color: '#fff',
 		fontSize: 16,
-		fontWeight: '500',
 	},
-	loadingContainer: {
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	userSpacing: {
-		marginTop: 8,
-	},
-	userItem: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		paddingVertical: 8,
-	},
-	userName: {
-		fontSize: 14,
-		fontWeight: '600',
-	},
-	noUsersText: {
+	noGateText: {
 		fontSize: 16,
-		fontWeight: '500',
 		textAlign: 'center',
 	},
 });

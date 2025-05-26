@@ -6,68 +6,70 @@ export class UpdateCarAndRemoveGarageRent1747603467124
   name = 'UpdateCarAndRemoveGarageRent1747603467124';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Удаляем старую таблицу аренды, если она существует
+    // Удаляем таблицу garage_rent
     await queryRunner.query(`DROP TABLE IF EXISTS "garage_rent"`);
 
-    // Обновляем таблицу автомобилей
+    // Удаляем старые ограничения и колонки из таблицы cars
     await queryRunner.query(
-      `ALTER TABLE "car" DROP CONSTRAINT IF EXISTS "FK_car_garage"`,
+      `ALTER TABLE "cars" DROP CONSTRAINT IF EXISTS "FK_car_garage"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "car" DROP COLUMN IF EXISTS "garage_id"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "car" ADD COLUMN IF NOT EXISTS "user_id" uuid`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "car" ADD CONSTRAINT "FK_car_user" FOREIGN KEY ("user_id") REFERENCES "user"("user_id") ON DELETE CASCADE`,
+      `ALTER TABLE "cars" DROP COLUMN IF EXISTS "garage_id"`,
     );
 
-    // Создаем таблицу связи пользователей и гаражей, если её нет
+    // Добавляем новые колонки created_at и updated_at
     await queryRunner.query(
-      `CREATE TABLE IF NOT EXISTS "user_garage" (
-        "user_id" uuid NOT NULL,
-        "garage_id" uuid NOT NULL,
-        CONSTRAINT "PK_user_garage" PRIMARY KEY ("user_id", "garage_id"),
-        CONSTRAINT "FK_user_garage_user" FOREIGN KEY ("user_id") REFERENCES "user"("user_id") ON DELETE CASCADE,
-        CONSTRAINT "FK_user_garage_garage" FOREIGN KEY ("garage_id") REFERENCES "garage"("garage_id") ON DELETE CASCADE
-      )`,
+      `ALTER TABLE "cars" ADD COLUMN IF NOT EXISTS "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "cars" ADD COLUMN IF NOT EXISTS "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP`,
+    );
+
+    // Добавляем новую колонку user_id
+    await queryRunner.query(
+      `ALTER TABLE "cars" ADD COLUMN IF NOT EXISTS "user_id" uuid`,
+    );
+
+    // Добавляем внешний ключ для связи с пользователем
+    await queryRunner.query(
+      `ALTER TABLE "cars" ADD CONSTRAINT "FK_car_user" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE CASCADE`,
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    // Удаляем таблицу связи пользователей и гаражей
-    await queryRunner.query(`DROP TABLE IF EXISTS "user_garage"`);
+    // Удаляем колонку user_id и ее ограничения
+    await queryRunner.query(`ALTER TABLE "cars" DROP CONSTRAINT "FK_car_user"`);
+    await queryRunner.query(`ALTER TABLE "cars" DROP COLUMN "user_id"`);
 
-    // Возвращаем связь автомобиля с гаражем
+    // Удаляем колонки created_at и updated_at
     await queryRunner.query(
-      `ALTER TABLE "car" DROP CONSTRAINT IF EXISTS "FK_car_user"`,
+      `ALTER TABLE "cars" DROP COLUMN IF EXISTS "created_at"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "car" DROP COLUMN IF EXISTS "user_id"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "car" ADD COLUMN IF NOT EXISTS "garage_id" uuid`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "car" ADD CONSTRAINT "FK_car_garage" FOREIGN KEY ("garage_id") REFERENCES "garage"("garage_id") ON DELETE CASCADE`,
+      `ALTER TABLE "cars" DROP COLUMN IF EXISTS "updated_at"`,
     );
 
-    // Создаем таблицу аренды
+    // Восстанавливаем колонку garage_id и ее ограничения
+    await queryRunner.query(`ALTER TABLE "cars" ADD COLUMN "garage_id" uuid`);
     await queryRunner.query(
-      `CREATE TABLE IF NOT EXISTS "garage_rent" (
+      `ALTER TABLE "cars" ADD CONSTRAINT "FK_car_garage" FOREIGN KEY ("garage_id") REFERENCES "garages"("garage_id") ON DELETE SET NULL`,
+    );
+
+    // Восстанавливаем таблицу garage_rent
+    await queryRunner.query(`
+      CREATE TABLE "garage_rent" (
         "rent_id" uuid NOT NULL DEFAULT uuid_generate_v4(),
-        "user_id" uuid NOT NULL,
         "garage_id" uuid NOT NULL,
-        "start_date" timestamp NOT NULL,
-        "end_date" timestamp,
-        "monthly_price" decimal(10,2) NOT NULL,
-        "status" varchar(20) NOT NULL DEFAULT 'ACTIVE',
-        "description" varchar(255),
+        "user_id" uuid NOT NULL,
+        "start_date" TIMESTAMP NOT NULL,
+        "end_date" TIMESTAMP NOT NULL,
+        "status" character varying(20) NOT NULL DEFAULT 'active',
+        "created_at" TIMESTAMP NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
         CONSTRAINT "PK_garage_rent" PRIMARY KEY ("rent_id"),
-        CONSTRAINT "FK_garage_rent_user" FOREIGN KEY ("user_id") REFERENCES "user"("user_id") ON DELETE CASCADE,
-        CONSTRAINT "FK_garage_rent_garage" FOREIGN KEY ("garage_id") REFERENCES "garage"("garage_id") ON DELETE CASCADE
-      )`,
-    );
+        CONSTRAINT "FK_garage_rent_garage" FOREIGN KEY ("garage_id") REFERENCES "garages"("garage_id") ON DELETE CASCADE,
+        CONSTRAINT "FK_garage_rent_user" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE CASCADE
+      )
+    `);
   }
 }

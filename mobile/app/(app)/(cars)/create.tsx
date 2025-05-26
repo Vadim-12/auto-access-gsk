@@ -6,6 +6,7 @@ import {
 	TouchableOpacity,
 	StyleSheet,
 	ScrollView,
+	Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useCreateCar } from '../../../hooks/cars/useCreateCar';
@@ -18,6 +19,7 @@ export default function AddCarScreen() {
 	const [licensePlate, setLicensePlate] = useState('');
 	const [color, setColor] = useState('');
 	const [year, setYear] = useState('');
+	const [vin, setVin] = useState('');
 
 	const { fetchCars } = useCars();
 	const { createCar, isLoading, error } = useCreateCar();
@@ -31,11 +33,13 @@ export default function AddCarScreen() {
 				licensePlate,
 				color,
 				year: parseInt(year, 10),
+				vin,
 			});
 			await fetchCars();
 			router.back();
 		} catch (err) {
-			console.error('Error adding car:', err);
+			console.log('Error adding car:', err);
+			Alert.alert('Ошибка', 'Не удалось добавить автомобиль');
 		}
 	};
 
@@ -91,6 +95,24 @@ export default function AddCarScreen() {
 					placeholder='Например: А123БВ777'
 					placeholderTextColor={colors.textSecondary}
 					autoCapitalize='characters'
+				/>
+
+				<Text style={[styles.label, { color: colors.text }]}>VIN-код</Text>
+				<TextInput
+					style={[
+						styles.input,
+						{
+							borderColor: colors.border,
+							color: colors.text,
+							backgroundColor: colors.cardBackground,
+						},
+					]}
+					value={vin}
+					onChangeText={setVin}
+					placeholder='Например: XTA210999Y1234567'
+					placeholderTextColor={colors.textSecondary}
+					autoCapitalize='characters'
+					maxLength={17}
 				/>
 
 				<Text style={[styles.label, { color: colors.text }]}>Цвет</Text>

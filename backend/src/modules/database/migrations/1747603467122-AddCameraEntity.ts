@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddCameraEntity1747603467118 implements MigrationInterface {
-  name = 'AddCameraEntity1747603467118';
+export class AddCameraEntity1747603467122 implements MigrationInterface {
+  name = 'AddCameraEntity1747603467122';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
@@ -9,7 +9,7 @@ export class AddCameraEntity1747603467118 implements MigrationInterface {
     );
 
     await queryRunner.query(
-      `CREATE TABLE "camera" (
+      `CREATE TABLE "cameras" (
         "camera_id" uuid NOT NULL DEFAULT uuid_generate_v4(),
         "garage_id" uuid NOT NULL,
         "ip" character varying(15) NOT NULL,
@@ -18,38 +18,40 @@ export class AddCameraEntity1747603467118 implements MigrationInterface {
         "name" character varying(100) NOT NULL,
         "description" character varying(255),
         "last_connection_time" TIMESTAMP,
-        CONSTRAINT "PK_camera" PRIMARY KEY ("camera_id")
+        CONSTRAINT "PK_camera" PRIMARY KEY ("camera_id"),
+        CONSTRAINT "FK_camera_garage" FOREIGN KEY ("garage_id") REFERENCES "garages"("garage_id") ON DELETE CASCADE,
+        CONSTRAINT "UQ_camera_garage" UNIQUE ("garage_id")
       )`,
     );
 
     await queryRunner.query(
-      `COMMENT ON COLUMN "camera"."camera_id" IS 'Camera UUID'`,
+      `COMMENT ON COLUMN "cameras"."camera_id" IS 'Camera UUID'`,
     );
     await queryRunner.query(
-      `COMMENT ON COLUMN "camera"."garage_id" IS 'Garage UUID'`,
+      `COMMENT ON COLUMN "cameras"."garage_id" IS 'Garage UUID'`,
     );
     await queryRunner.query(
-      `COMMENT ON COLUMN "camera"."ip" IS 'Camera IP address'`,
+      `COMMENT ON COLUMN "cameras"."ip" IS 'Camera IP address'`,
     );
     await queryRunner.query(
-      `COMMENT ON COLUMN "camera"."port" IS 'Camera port'`,
+      `COMMENT ON COLUMN "cameras"."port" IS 'Camera port'`,
     );
     await queryRunner.query(
-      `COMMENT ON COLUMN "camera"."status" IS 'Camera status'`,
+      `COMMENT ON COLUMN "cameras"."status" IS 'Camera status'`,
     );
     await queryRunner.query(
-      `COMMENT ON COLUMN "camera"."name" IS 'Camera name'`,
+      `COMMENT ON COLUMN "cameras"."name" IS 'Camera name'`,
     );
     await queryRunner.query(
-      `COMMENT ON COLUMN "camera"."description" IS 'Camera description'`,
+      `COMMENT ON COLUMN "cameras"."description" IS 'Camera description'`,
     );
     await queryRunner.query(
-      `COMMENT ON COLUMN "camera"."last_connection_time" IS 'Last connection time'`,
+      `COMMENT ON COLUMN "cameras"."last_connection_time" IS 'Last connection time'`,
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TABLE "camera"`);
+    await queryRunner.query(`DROP TABLE "cameras"`);
     await queryRunner.query(`DROP TYPE "public"."camera_status_enum"`);
   }
 }
